@@ -1,0 +1,1 @@
+woocommerce_payment_cartalis
