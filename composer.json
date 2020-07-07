@@ -1,0 +1,34 @@
+{
+  "name": "ws/woocommerce_payment_cartalis",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [
+    "payment",
+    "cartalis",
+    "woocommerce"
+  ],
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "ws",
+      "email": "info@waltersanti.info",
+      "homepage": "https://blog.waltersanti.info"
+    }
+  ],
+  "minimum-stability": "dev",
+  "require": {
+    "php": ">=5.4.0",
+    "ext-gd": "*",
+    "ayeo/gs1_barcode": "1.0.*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "~4.8"
+  },
+  "repositories": {
+    "gs1_128": {
+      "type": "git",
+      "url": "git@github.com:ayeo/gs1_128.git"
+    }
+  }
+}
