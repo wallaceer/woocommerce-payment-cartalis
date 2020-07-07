@@ -55,6 +55,7 @@ function init_wc_custom_payment_gateway() {
 
             // Customer Emails
             add_action( 'woocommerce_email_before_order_table', array( $this, 'email_instructions' ), 10, 3 );
+
         }
 
         /**
@@ -137,10 +138,13 @@ function init_wc_custom_payment_gateway() {
          */
         public function email_instructions( $order, $sent_to_admin, $plain_text = false ) {
 
-            if ( ! $sent_to_admin && 'wc_cartalis' === $order->get_payment_method() && $order->has_status( 'on-hold' ) ) {
+            if ( 'wc_cartalis' === $order->get_payment_method() && $order->has_status( 'on-hold' ) ) {
                 //if ( $this->instructions ) {
-                    echo wp_kses_post( wpautop( wptexturize( 'codice a barre CARTALIS x pagamento' ) ) . PHP_EOL );
-               // }
+                $orderId = $order->get_id();
+                $barcode = $this->generateBarcode( $orderId );
+                if ( ! empty( $barcode ) ) {
+                    echo wp_kses_post( wpautop( wptexturize( 'codice a barre CARTALIS x pagamento <img src="//'.$_SERVER['HTTP_HOST'].'/wp-content/uploads/barcode/'.$orderId.'.png" />' ) ) . PHP_EOL );
+                }
                 //$this->bank_details( $order->get_id() );
             }
 
