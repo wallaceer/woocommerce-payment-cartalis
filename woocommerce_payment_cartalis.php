@@ -17,30 +17,35 @@ if ( ! defined( 'ABSPATH' ) ) {
 use Ayeo\Barcode;
 
 // AGGIUNGO UN FILTRO PER VISUALIZZARE IL GATEWAY ALL'INTERNO DELLA LISTA DI WOOCOMMERCE
-add_filter('woocommerce_payment_gateways', 'Custom_add_gateway_class');
-function Custom_add_gateway_class($gateways) {
+add_filter('woocommerce_payment_gateways', 'Ws_add_gateway_class');
+function Ws_add_gateway_class($gateways) {
 $gateways[] = 'WC_Cartalis';
 return $gateways;
 }
 
 // AGGIUNGO L'AZIONE
-add_action('plugins_loaded', 'init_wc_custom_payment_gateway');
-function init_wc_custom_payment_gateway() {
+add_action('plugins_loaded', 'init_wc_cartalis_payment_gateway');
+function init_wc_cartalis_payment_gateway() {
 
     class WC_Cartalis extends WC_Payment_Gateway {
 
         public function __construct() {
+
+            //Root configuration
+            $this->uploadDir = wp_upload_dir();
 
             // Required fields
             $this->id = 'wc_cartalis';
             $this->method_title = 'CARTALIS';
             $this->title = __( 'CARTALIS', 'woocommerce' );
             $this->has_fields = true;
-            $this->method_description = __('CARTALIS payment gateway', 'woocommerce');
+            $this->method_description = __('Accetta pagamenti tramite Lottomatica', 'woocommerce');
 
             // Load the settings.
             $this->init_form_fields();
             $this->init_settings();
+            $this->mandante_prefisso = sanitize_text_field($this->get_option('mandante_prefisso'));
+            $this->mandante_codice_identificativo = sanitize_text_field($this->get_option('mandante_codice_identificativo'));
 
             // Define user set variables.
             $this->enabled = $this->get_option('enabled');
@@ -50,11 +55,12 @@ function init_wc_custom_payment_gateway() {
             // Actions
             add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
             add_action( 'woocommerce_thankyou', array( $this, 'ws_view_order_and_thankyou_page' ));
-            add_action( 'woocommerce_checkout_update_order_meta', 'ws_custom_checkout_field_update_order_meta' );
+            //add_action( 'woocommerce_checkout_update_order_meta', 'ws_custom_checkout_field_update_order_meta' );
             add_action( 'woocommerce_admin_order_data_after_billing_address', array( $this, 'ws_custom_checkout_field_display_admin_order_meta'));
 
             // Customer Emails
             add_action( 'woocommerce_email_before_order_table', array( $this, 'email_instructions' ), 10, 3 );
+            add_filter('woocommerce_email_attachments', array( $this, 'attach_file_woocommerce_email'), 10, 3);
 
         }
 
@@ -66,14 +72,14 @@ function init_wc_custom_payment_gateway() {
                 'enabled' => array(
                     'title' => 'Enable/Disable',
                     'type' => 'checkbox',
-                    'label' => 'Enable Custom',
+                    'label' => 'Abilita CARTALIS',
                     'default' => 'yes'
                 ),
                 'title' => array(
                     'title' => 'CARTALIS',
                     'type' => 'text',
                     'description' => 'This controls the payment CARTALIS',
-                    'default' => 'CARTALIS Payment Gateway',
+                    'default' => '',
                     'desc_tip' => true,
                 ),
                 'description' => array(
@@ -82,6 +88,41 @@ function init_wc_custom_payment_gateway() {
                     'css' => 'width:500px;',
                     'default' => 'Pay with CARTALIS',
                     'description' => 'Paga con CARTALIS.',
+                ),
+                'mandante_prefisso' => array(
+                    'title' => 'Mandante, prefisso',
+                    'type' => 'text',
+                    'description' => 'Prefisso del MANDANTE',
+                    'default' => '(415)',
+                    'desc_tip' => true,
+                ),
+                'mandante_codice_identificativo' => array(
+                    'title' => 'Mandante, codice identificativo',
+                    'type' => 'text',
+                    'description' => 'Codice identificativo del MANDANTE, 13 digit',
+                    'default' => 'XXXXXXXXXXXXK',
+                    'desc_tip' => true,
+                ),
+                'cartalis_ftp_hots' => array(
+                    'title' => 'Cartalis FTP Host',
+                    'type' => 'text',
+                    'description' => 'Nome dell\'host cartalis per il recupero dei pagamenti effettuati',
+                    'default' => 'ftp.miosito.com',
+                    'desc_tip' => true,
+                ),
+                'cartalis_ftp_user' => array(
+                    'title' => 'Cartalis FTP Username',
+                    'type' => 'text',
+                    'description' => 'Username per la connessione ftp',
+                    'default' => '',
+                    'desc_tip' => true,
+                ),
+                'cartalis_ftp_password' => array(
+                    'title' => 'Cartalis FTP Password',
+                    'type' => 'text',
+                    'description' => 'Password per la connessione ftp',
+                    'default' => '',
+                    'desc_tip' => true,
                 )
             );
         }
@@ -105,6 +146,10 @@ function init_wc_custom_payment_gateway() {
 
             //Save CARTALIS barcode
             $this->ws_custom_checkout_field_update_order_meta($order_id);
+
+            //TO DO
+            //Generazione PDF bollettino nella directory uplads/bollettini
+            //il file deve avere come nome l'id ordine
 
             $woocommerce->cart->empty_cart();
             //$order->reduce_order_stock();
@@ -139,16 +184,34 @@ function init_wc_custom_payment_gateway() {
         public function email_instructions( $order, $sent_to_admin, $plain_text = false ) {
 
             if ( 'wc_cartalis' === $order->get_payment_method() && $order->has_status( 'on-hold' ) ) {
-                //if ( $this->instructions ) {
+
                 $orderId = $order->get_id();
                 $barcode = $this->generateBarcode( $orderId );
+
                 if ( ! empty( $barcode ) ) {
                     echo wp_kses_post( wpautop( wptexturize( 'codice a barre CARTALIS x pagamento <img src="//'.$_SERVER['HTTP_HOST'].'/wp-content/uploads/barcode/'.$orderId.'.png" />' ) ) . PHP_EOL );
                 }
-                //$this->bank_details( $order->get_id() );
+
             }
 
         }
+
+        /**
+         * Add attachment to email
+         *
+         * @param WC_Order $order Order object
+         * @param $attachments
+         * @return mixed
+         */
+        function attach_file_woocommerce_email($attachments, $id, $object)
+        {
+            $attachmentFile = $this->uploadDir['basedir'] . '/bollettini/'.$object->get_id().'.png';
+                if ( file_exists( $attachmentFile ) ) {
+                    $attachments[] = $attachmentFile;
+                }
+            return $attachments;
+        }
+
 
         function ws_custom_checkout_field_update_order_meta( $order_id ) {
             $barcode = $this->generateBarcode( $order_id );
@@ -165,7 +228,7 @@ function init_wc_custom_payment_gateway() {
         }
 
         function generateBarcode( $order_id ){
-            $code = '(10)123456(400)11';
+            $code = $this->mandante_prefisso.$this->mandante_codice_identificativo.'8020YYYYYYYYYYYYYYYYZZ39021000';
             $barcodefile = 'wp-content/uploads/barcode/'.$order_id.'.png';
             /**
              * Barcode generation
@@ -176,7 +239,7 @@ function init_wc_custom_payment_gateway() {
                 $builder->setBarcodeType('gs1-128');
                 $builder->setFilename($barcodefile);
                 $builder->setImageFormat('png');
-                $builder->setWidth(500);
+                $builder->setWidth(800);
                 $builder->setHeight(150);
                 $builder->setFontPath('FreeSans.ttf');
                 $builder->setFontSize(15);
@@ -186,6 +249,17 @@ function init_wc_custom_payment_gateway() {
             }
 
             return $code;
+        }
+
+        /**
+         *  Admin Panel Options
+         */
+        public function admin_options() {
+            echo '<h3>' . __('CARTALIS Gateway', 'woo-cartalis-payment-gateway') . '</h3>';
+            echo '<p>' . __('With CARTALIS the customer can pay the order in any point of Lottomatica.', 'woo-cartalis-payment-gateway') . '</p>';
+            echo '<table class="form-table">';
+            $this->generate_settings_html();
+            echo '</table>';
         }
 
     }
