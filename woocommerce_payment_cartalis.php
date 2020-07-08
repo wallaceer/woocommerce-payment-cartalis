@@ -133,23 +133,20 @@ function init_wc_cartalis_payment_gateway() {
 
             $order = new WC_Order($order_id);
 
-            // QUI DOVETE METTERE IL VOSTRO CODICE
-            //$res = 'CARTALIS pagato walter';//$this->CustomPayment();
-            // FINE VOSTRO CODICE
-
             if ( $order->get_total() > 0 ) {
+                //Save CARTALIS barcode
+                $this->ws_custom_checkout_field_update_order_meta($order);
+
+                //TO DO
+                //Generazione PDF bollettino nella directory uplads/bollettini
+                //il file deve avere come nome l'id ordine
+                $this->generateDepositPdf($order_id);
+
                 // Mark as on-hold (we're awaiting the payment).
                 $order->update_status( apply_filters( 'woocommerce_bacs_process_payment_order_status', 'on-hold', $order ), __( 'Awaiting CARTALIS payment', 'woocommerce' ) );
             } else {
                 $order->payment_complete();
             }
-
-            //Save CARTALIS barcode
-            $this->ws_custom_checkout_field_update_order_meta($order);
-
-            //TO DO
-            //Generazione PDF bollettino nella directory uplads/bollettini
-            //il file deve avere come nome l'id ordine
 
             $woocommerce->cart->empty_cart();
             //$order->reduce_order_stock();
@@ -205,10 +202,10 @@ function init_wc_cartalis_payment_gateway() {
          */
         function attach_file_woocommerce_email($attachments, $id, $object)
         {
-            $attachmentFile = $this->uploadDir['basedir'] . '/bollettini/'.$object->get_id().'.png';
-                if ( file_exists( $attachmentFile ) ) {
-                    $attachments[] = $attachmentFile;
-                }
+            $attachmentFile = $this->uploadDir['basedir'] . '/deposit/'.$object->get_id().'.pdf';
+            if ( file_exists( $attachmentFile ) ) {
+                $attachments[] = $attachmentFile;
+            }
             return $attachments;
         }
 
@@ -264,6 +261,20 @@ function init_wc_cartalis_payment_gateway() {
             echo '<table class="form-table">';
             $this->generate_settings_html();
             echo '</table>';
+        }
+
+
+        public function generateDepositPdf($order_id){
+            $barcode = $this->uploadDir['basedir'].'/barcode/'.$order_id.'.png';
+            $filename = $this->uploadDir['basedir'].'/deposit/'.$order_id.'.pdf';
+
+            require( __DIR__ . '/lib/fpdf/fpdf.php');
+            $pdf = new FPDF();
+            $pdf->AddPage();
+            $pdf->SetFont('Arial','B',16);
+            $pdf->Image($barcode, null, null, null, null, 'PNG');
+            $pdf->Cell(300,10,'Bollettino di pagamento per l\'ordine '.$order_id );
+            $pdf->Output('F', $filename);
         }
 
     }
