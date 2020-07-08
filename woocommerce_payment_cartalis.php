@@ -145,7 +145,7 @@ function init_wc_cartalis_payment_gateway() {
             }
 
             //Save CARTALIS barcode
-            $this->ws_custom_checkout_field_update_order_meta($order_id);
+            $this->ws_custom_checkout_field_update_order_meta($order);
 
             //TO DO
             //Generazione PDF bollettino nella directory uplads/bollettini
@@ -169,7 +169,7 @@ function init_wc_cartalis_payment_gateway() {
         public function ws_view_order_and_thankyou_page( $order_id ) {
             $order = new WC_Order($order_id);
             if('wc_cartalis' === $order->get_payment_method()){
-                $this->generateBarcode( $order_id);
+                $this->generateBarcode( $order);
                 echo 'codice a barre CARTALIS x pagamento <img src="//'.$_SERVER['HTTP_HOST'].'/wp-content/uploads/barcode/'.$order_id.'.png" />';
             }
         }
@@ -186,7 +186,7 @@ function init_wc_cartalis_payment_gateway() {
             if ( 'wc_cartalis' === $order->get_payment_method() && $order->has_status( 'on-hold' ) ) {
 
                 $orderId = $order->get_id();
-                $barcode = $this->generateBarcode( $orderId );
+                $barcode = $this->generateBarcode( $order );
 
                 if ( ! empty( $barcode ) ) {
                     echo wp_kses_post( wpautop( wptexturize( 'codice a barre CARTALIS x pagamento <img src="//'.$_SERVER['HTTP_HOST'].'/wp-content/uploads/barcode/'.$orderId.'.png" />' ) ) . PHP_EOL );
@@ -213,8 +213,9 @@ function init_wc_cartalis_payment_gateway() {
         }
 
 
-        function ws_custom_checkout_field_update_order_meta( $order_id ) {
-            $barcode = $this->generateBarcode( $order_id );
+        function ws_custom_checkout_field_update_order_meta( $order ) {
+            $order_id = $order->get_id();
+            $barcode = $this->generateBarcode( $order );
             if ( ! empty( $barcode ) ) {
                 update_post_meta( $order_id, 'cartalisBarcode', sanitize_text_field( $barcode ) );
             }
@@ -227,8 +228,11 @@ function init_wc_cartalis_payment_gateway() {
             echo '<p><strong>'.__('CARTALIS Barcode').':</strong> ' . get_post_meta( $order->get_id(), 'cartalisBarcode', true ) . '<img src="//'.$_SERVER['HTTP_HOST'].'/wp-content/uploads/barcode/'.$order->get_id().'.png" /></p>';
         }
 
-        function generateBarcode( $order_id ){
-            $code = $this->mandante_prefisso.$this->mandante_codice_identificativo.'8020YYYYYYYYYYYYYYYYZZ39021000';
+        function generateBarcode( $order ){
+            $order_id = $order->get_id();
+            $order_amount = str_replace(".", "",$order->get_total());
+
+            $code = $this->mandante_prefisso.$this->mandante_codice_identificativo.'8020YYYYYYYYYYYYYYYYZZ3902'.$order_amount;
             $barcodefile = 'wp-content/uploads/barcode/'.$order_id.'.png';
             /**
              * Barcode generation
