@@ -227,9 +227,21 @@ function init_wc_cartalis_payment_gateway() {
 
         function generateBarcode( $order ){
             $order_id = $order->get_id();
+            $default_amount = '000000';
             $order_amount = str_replace(".", "",$order->get_total());
+            $amount = substr_replace($default_amount, $order_amount, 6-strlen($order_amount), strlen($order_amount));
 
-            $code = $this->mandante_prefisso.$this->mandante_codice_identificativo.'8020YYYYYYYYYYYYYYYYZZ3902'.$order_amount;
+            $standard_prefix_a = '(8020)';
+            $standard_prefix_b = '(3902)';
+            $check_digit = '54';
+
+            $code = $this->mandante_prefisso
+                .$this->mandante_codice_identificativo
+                .$standard_prefix_a
+                .'0000000000000001'
+                .$check_digit
+                .$standard_prefix_b
+                .$amount;
             $barcodefile = 'wp-content/uploads/barcode/'.$order_id.'.png';
             /**
              * Barcode generation
