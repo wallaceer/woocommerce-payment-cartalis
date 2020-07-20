@@ -127,7 +127,7 @@ function init_wc_cartalis_payment_gateway() {
             );
         }
 
-        // PROCESSO DI PAGAMENTO
+        // Payment process
         function process_payment($order_id) {
             global $woocommerce;
 
@@ -137,9 +137,7 @@ function init_wc_cartalis_payment_gateway() {
                 //Save CARTALIS barcode
                 $this->ws_custom_checkout_field_update_order_meta($order);
 
-                //TO DO
-                //Generazione PDF bollettino nella directory uplads/bollettini
-                //il file deve avere come nome l'id ordine
+                //PDF deposit generation
                 $this->generateDepositPdf($order_id);
 
                 // Mark as on-hold (we're awaiting the payment).
@@ -246,7 +244,7 @@ function init_wc_cartalis_payment_gateway() {
             /**
              * Barcode generation
              */
-            #if (!file_exists($barcodefile)) {
+            if (!file_exists($barcodefile)) {
                 require_once('vendor/autoload.php');
                 $builder = new Barcode\Builder();
                 $builder->setBarcodeType('gs1-128');
@@ -259,12 +257,7 @@ function init_wc_cartalis_payment_gateway() {
                 $builder->setBackgroundColor(255, 255, 255);
                 $builder->setPaintColor(0, 0, 0);
                 $builder->saveImage($code);
-            #}
-
-            //============
-            //DA ELIMINARE
-            //============
-            $this->generateDepositPdf($order_id);
+            }
 
             return $code;
         }
@@ -291,9 +284,8 @@ function init_wc_cartalis_payment_gateway() {
 
             require( __DIR__ . '/ws_fpdf.php');
             $pdf = new ws_fpdf();
-            $pdf->AddPage("P", array('95','150'));
+            $pdf->AddPage("P", 'A4');
             $pdf->SetFont('Times','B',8);
-            //$pdf->Cell(50,20,$text_top, 1, 0, 'C');
             $pdf->SetXY(4,4);
             $pdf->Cell(85,10,'Bollettino di pagamento per l\'ordine '.$order_id );
             $pdf->SetFont('Times','',8);
