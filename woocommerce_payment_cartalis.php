@@ -165,7 +165,9 @@ function init_wc_cartalis_payment_gateway() {
             $order = new WC_Order($order_id);
             if('wc_cartalis' === $order->get_payment_method()){
                 $this->generateBarcode( $order);
-                echo 'codice a barre CARTALIS x pagamento <img src="//'.$_SERVER['HTTP_HOST'].'/wp-content/uploads/barcode/'.$order_id.'.png" />';
+                $barcodeHttp = '//'.$_SERVER['HTTP_HOST'].'/wp-content/uploads/barcode/'.$order_id.'.png';
+                echo '<h2 class="woocommerce-order-details__title">Pagamento</h2>'
+                    . 'Pagamento tramite CARTALIS. Codice a barre per eseguire il pagamento <a href="'.$barcodeHttp.'" target="_blank"><img src="'.$barcodeHttp.'" width="450px/></a>';
             }
         }
 
@@ -208,6 +210,10 @@ function init_wc_cartalis_payment_gateway() {
         }
 
 
+        /**
+         * Save barcode to order's data
+         * @param $order
+         */
         function ws_custom_checkout_field_update_order_meta( $order ) {
             $order_id = $order->get_id();
             $barcode = $this->generateBarcode( $order );
@@ -220,7 +226,15 @@ function init_wc_cartalis_payment_gateway() {
          * Display field value on the order edit page
          */
         function ws_custom_checkout_field_display_admin_order_meta( $order ){
-            echo '<p><strong>'.__('CARTALIS Barcode').':</strong> ' . get_post_meta( $order->get_id(), 'cartalisBarcode', true ) . '<img src="//'.$_SERVER['HTTP_HOST'].'/wp-content/uploads/barcode/'.$order->get_id().'.png" /></p>';
+            $order_id = $order->get_id();
+            $barcodeHttp = '//'.$_SERVER['HTTP_HOST'].'/wp-content/uploads/barcode/'.$order_id.'.png';
+
+            echo '<h3>Pagamento</h3>'
+                . '<p><strong>'.__('Pagamento tramite CARTALIS. Codice a barre per eseguire il pagamento').':</strong></p>'
+                //. get_post_meta( $order_id, 'cartalisBarcode', true )
+                . '<p>'
+                . '<a href="'.$barcodeHttp.'" target="_blank"><img src="'.$barcodeHttp.'" width="300px/></a>'
+                . '</p>';
         }
 
         function generateBarcode( $order ){
