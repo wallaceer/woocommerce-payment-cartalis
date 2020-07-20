@@ -246,20 +246,25 @@ function init_wc_cartalis_payment_gateway() {
             /**
              * Barcode generation
              */
-            if (!file_exists($barcodefile)) {
+            #if (!file_exists($barcodefile)) {
                 require_once('vendor/autoload.php');
                 $builder = new Barcode\Builder();
                 $builder->setBarcodeType('gs1-128');
                 $builder->setFilename($barcodefile);
                 $builder->setImageFormat('png');
-                $builder->setWidth(800);
-                $builder->setHeight(150);
+                $builder->setWidth(1134);
+                $builder->setHeight(189);
                 $builder->setFontPath('FreeSans.ttf');
-                $builder->setFontSize(15);
+                $builder->setFontSize(18);
                 $builder->setBackgroundColor(255, 255, 255);
                 $builder->setPaintColor(0, 0, 0);
                 $builder->saveImage($code);
-            }
+            #}
+
+            //============
+            //DA ELIMINARE
+            //============
+            $this->generateDepositPdf($order_id);
 
             return $code;
         }
@@ -280,12 +285,31 @@ function init_wc_cartalis_payment_gateway() {
             $barcode = $this->uploadDir['basedir'].'/barcode/'.$order_id.'.png';
             $filename = $this->uploadDir['basedir'].'/deposit/'.$order_id.'.pdf';
 
-            require( __DIR__ . '/lib/fpdf/fpdf.php');
-            $pdf = new FPDF();
-            $pdf->AddPage();
-            $pdf->SetFont('Arial','B',16);
-            $pdf->Image($barcode, null, null, null, null, 'PNG');
-            $pdf->Cell(300,10,'Bollettino di pagamento per l\'ordine '.$order_id );
+            $text_top = utf8_decode("Vai in una tabaccheria, edicola o bar PUNTOLIS, puoi pagare in modo comodo e veloce semplicemente mostrando il codice a barre riportato sotto.");
+            $text_top1 = utf8_decode("Il pagamento può essere effettuato con carte di credito e prepagate VISA e MASTERCARD, con carte PagoBancomat o contanti.");
+            $text_top2 = utf8_decode("Cerca il punto più vicino a te su www.puntolis.it");
+
+            require( __DIR__ . '/ws_fpdf.php');
+            $pdf = new ws_fpdf();
+            $pdf->AddPage("P", array('95','150'));
+            $pdf->SetFont('Times','B',8);
+            //$pdf->Cell(50,20,$text_top, 1, 0, 'C');
+            $pdf->SetXY(4,4);
+            $pdf->Cell(85,10,'Bollettino di pagamento per l\'ordine '.$order_id );
+            $pdf->SetFont('Times','',8);
+            $pdf->SetXY(4,15);
+            $pdf->drawTextBox($text_top, 85, 10, 'L', 'T', false);
+            $pdf->SetXY(4,26);
+            $pdf->drawTextBox($text_top1, 85, 10, 'L', 'T', false);
+            $pdf->SetXY(4,37);
+            $pdf->drawTextBox($text_top2, 85, 10, 'L', 'T', false);
+            //BARCODE
+            $pdf->SetXY(0,50);
+            $pdf->Image($barcode, 0, null, 95, null, 'PNG');
+            //MARCHIO
+            $pdf->SetXY(4,85);
+            $pdf->Image(__DIR__ .'/assets/img/puntolis.png', null, null, 85, null, 'PNG');
+
             $pdf->Output('F', $filename);
         }
 
