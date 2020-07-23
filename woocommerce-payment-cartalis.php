@@ -62,6 +62,16 @@ function init_wc_cartalis_payment_gateway() {
             add_action( 'woocommerce_email_before_order_table', array( $this, 'email_instructions' ), 10, 3 );
             add_filter('woocommerce_email_attachments', array( $this, 'attach_file_woocommerce_email'), 10, 3);
 
+            //Cron Job
+            register_activation_hook (__FILE__, 'cartalis_cronstarter_activation');
+            register_deactivation_hook (__FILE__, 'cartalis_cronstarter_deactivate');
+            add_action('wp', 'cartalis_cronstarter_activation');
+            // hook that function onto our scheduled event:
+            add_action('ws_cartalis_cronjob', 'cartalis_ftp_function');
+            //for testing cron
+            add_filter( 'cron_schedules', 'cron_add_minute' );
+            #add_action( 'init', 'cartalis_cronstarter_activation');
+
         }
 
         /**
@@ -103,7 +113,14 @@ function init_wc_cartalis_payment_gateway() {
                     'default' => 'XXXXXXXXXXXXK',
                     'desc_tip' => true,
                 ),
-                'cartalis_ftp_hots' => array(
+                'cartalis_ftp_status' => array(
+                    'title' => 'Cartalis FTP Status',
+                    'type' => 'text',
+                    'description' => 'Attiva (1), Disattiva (0), le funzionalità ftp',
+                    'default' => '0',
+                    'desc_tip' => true,
+                ),
+                'cartalis_ftp_host' => array(
                     'title' => 'Cartalis FTP Host',
                     'type' => 'text',
                     'description' => 'Nome dell\'host cartalis per il recupero dei pagamenti effettuati',
@@ -318,6 +335,54 @@ function init_wc_cartalis_payment_gateway() {
 
             $pdf->Output('F', $filename);
         }
+
+
+        // create a scheduled event (if it does not exist already)
+        function cartalis_cronstarter_activation() {
+            if( !wp_next_scheduled( 'ws_cartalis_cronjob' ) ) {
+                wp_schedule_event( time(), 'everyminute', 'ws_cartalis_cronjob' );
+            }
+        }
+
+        // unschedule event upon plugin deactivation
+        function cartalis_cronstarter_deactivate() {
+            // find out when the last event was scheduled
+            $timestamp = wp_next_scheduled ('ws_cartalis_cronjob');
+            // unschedule previous event if any
+            wp_unschedule_event ($timestamp, 'ws_cartalis_cronjob');
+        }
+
+
+        // here's the function we'd like to call with our cron job
+        function cartalis_ftp_function() {
+
+            echo 'ciao';
+
+            #include __DIR__ . '/class/ws_ftp.php';
+            #$ftp = new ws_ftp;
+            #$ftp->exec();
+            // do here what needs to be done automatically as per your schedule
+            // in this example we're sending an email
+
+            // components for our email
+            $recepients = 'santi.walter@gmail.com';
+            $subject = 'Hello from your Cron Job';
+            $message = 'This is a test mail sent by WordPress automatically as per your schedule.';
+
+            // let's send it
+            wp_mail( 'hello@example.com', 'WP Crontrol', 'WP Crontrol rocks!' );
+        }
+
+        // add custom interval
+        function cron_add_minute( $schedules ) {
+            // Adds once every minute to the existing schedules.
+            $schedules['everyminute'] = array(
+                'interval' => 60,
+                'display' => __( 'Once Every Minute' )
+            );
+            return $schedules;
+        }
+
 
     }
 }
