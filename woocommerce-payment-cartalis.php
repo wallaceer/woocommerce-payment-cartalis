@@ -5,7 +5,7 @@
 * Description: CARTALIS Payment
 * Author: Walter Santi
 * Author URI: https://waltersanti.info
-* Version: 0.1
+* Version: 1.0.0
 *
 * @package WC_Admin
 */
@@ -182,9 +182,9 @@ function init_wc_cartalis_payment_gateway() {
             $order = new WC_Order($order_id);
             if('wc_cartalis' === $order->get_payment_method()){
                 $this->generateBarcode( $order);
-                $barcodeHttp = '//'.$_SERVER['HTTP_HOST'].'/wp-content/uploads/barcode/'.$order_id.'.png';
+                $barcodeHttp = get_site_url().'/wp-content/uploads/barcode/'.$order_id.'.png';
                 echo '<h2 class="woocommerce-order-details__title">Pagamento</h2>'
-                    . 'Pagamento tramite CARTALIS. Codice a barre per eseguire il pagamento <a href="'.$barcodeHttp.'" target="_blank"><img src="'.$barcodeHttp.'" width="450px/></a>';
+                    . 'Pagamento tramite CARTALIS. Codice a barre per eseguire il pagamento <a href="'.$barcodeHttp.'" target="_blank"><img src="'.$barcodeHttp.'" width="450px" /></a>';
             }
         }
 
@@ -203,7 +203,7 @@ function init_wc_cartalis_payment_gateway() {
                 $barcode = $this->generateBarcode( $order );
 
                 if ( ! empty( $barcode ) ) {
-                    echo wp_kses_post( wpautop( wptexturize( 'codice a barre CARTALIS x pagamento <img src="//'.$_SERVER['HTTP_HOST'].'/wp-content/uploads/barcode/'.$orderId.'.png" />' ) ) . PHP_EOL );
+                    echo wp_kses_post( wpautop( wptexturize( 'codice a barre CARTALIS x pagamento <img src="'.get_site_url().'/wp-content/uploads/barcode/'.$orderId.'.png" />' ) ) . PHP_EOL );
                 }
 
             }
