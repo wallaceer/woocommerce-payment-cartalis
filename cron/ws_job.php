@@ -35,6 +35,28 @@ $ftp = new ws_ftp();
 $ftp->ftpExec($host, $user, $password);
 
 /**
+ * -------------------------
+ * Download file and load it
+ * -------------------------
+ *
+ * Tracciato Record
+ * Il file dati per la rendicontazione contiene due tipi di record:
+ *
+ * record di dettaglio,
+ * record di riepilogo (obbligatorio).
+ *
+ * In particolare, il contenuto di un file dati ha la seguente struttura:
+ *
+ * [Dettaglio]
+ * Riepilogo
+ *
+ * Il file di rendicontazione contiene da 0 a n record di dettaglio e un record di riepilogo.
+ * I campi dei record per questo file di rendicontazione sono a lunghezza fissa (senza caratteri separatori tra un campo e il successivo).
+ * Il formato del record di dettaglio e di riepilogo sono specificati in un file in formato xml i cui nomi sono configurabili.
+ */
+
+
+/**
  * Order management
  */
 $order = new WC_Order('87');
