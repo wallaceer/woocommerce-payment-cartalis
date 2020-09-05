@@ -247,8 +247,8 @@ function init_wc_cartalis_payment_gateway() {
             $barcodeHttp = '//'.$_SERVER['HTTP_HOST'].'/wp-content/uploads/barcode/'.$order_id.'.png';
 
             echo '<h3>Pagamento</h3>'
-                . '<p><strong>'.__('Pagamento tramite CARTALIS. Codice a barre per eseguire il pagamento').':</strong></p>'
-                //. get_post_meta( $order_id, 'cartalisBarcode', true )
+                . '<p>'.__('Pagamento tramite CARTALIS. <br />Codice a barre per eseguire il pagamento').':</p>'
+                . get_post_meta( $order_id, 'cartalisBarcode', true )
                 . '<p>'
                 . '<a href="'.$barcodeHttp.'" target="_blank"><img src="'.$barcodeHttp.'" width="300px/></a>'
                 . '</p>';
