@@ -31,9 +31,16 @@ if($ftp_status === 0 || $ftp_status === null) return;
  * Ftp connection
  */
 include __DIR__ . '/../class/ws_ftp.php';
-$ftp = new ws_ftp();
-$ftp->ftpExec($host, $user, $password);
 
+$ftp = new ws_ftp();
+$filejob = $ftp->ftpExec($host, $user, $password);
+if($filejob === null) {
+    exit('Error: file is empty!');
+}else{
+    echo "Analizing file ".$filejob;
+    $analysis = new ws_cartalis();
+    $analysis->fileAnalize($filejob);
+}
 /**
  * -------------------------
  * Download file and load it
@@ -62,3 +69,7 @@ $ftp->ftpExec($host, $user, $password);
 $order = new WC_Order('87');
 echo $order->get_total()."\r\n";
 
+/**
+ * At the end of job, should delete the local file
+ */
+$ftp->localFileDelete($filejob);
