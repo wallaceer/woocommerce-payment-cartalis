@@ -25,15 +25,19 @@ $host = $payment_gateway->settings['cartalis_ftp_host'] ?? null;
 $user = $payment_gateway->settings['cartalis_ftp_user'] ?? null;
 $password = $payment_gateway->settings['cartalis_ftp_password'] ?? null;
 $ftp_status = $payment_gateway->settings['cartalis_ftp_status'] ?? null;
+$remote_dir = $payment_gateway->settings['cartalis_ftp_path'] ?? null;
+$tmp_dir = $payment_gateway->settings['cartalis_tmp_directory_'] ?? null;
+
 if($ftp_status === 0 || $ftp_status === null) return;
 
 /**
  * Ftp connection
  */
 include __DIR__ . '/../class/ws_ftp.php';
+include __DIR__ . '/../class/ws_utilities.php';
 
 $ftp = new ws_ftp();
-$filejob = $ftp->ftpExec($host, $user, $password);
+$filejob = $ftp->ftpExec($host, $user, $password, $remote_dir, $tmp_dir);
 if($filejob === null) {
     exit('Error: file is empty!');
 }else{

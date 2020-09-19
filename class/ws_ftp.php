@@ -9,7 +9,7 @@ class ws_ftp extends ws_cartalis {
      * Remote directory
      * @var string
      */
-    static $remote_dir = '/web/dev/';
+    #static $remote_dir = '/web/dev/';
     /**
      * Remote file to load
      * @var string
@@ -20,7 +20,7 @@ class ws_ftp extends ws_cartalis {
      * Open connection
      * @return false|resource
      */
-    public function ftpConnection($host, $user, $password){
+    public function ftpConnection($host, $user, $password, $remote_dir){
         $ftp_host = $host;
         $ftp_username = $user;
         $ftp_password = $password;
@@ -32,7 +32,7 @@ class ws_ftp extends ws_cartalis {
         } else {
             $this->cartalis_logs("Connected to ".$ftp_host.", for user ".$ftp_username." with connection".$ftp_conn);
             $this->cartalis_logs("Current directory: " . ftp_pwd($ftp_conn));
-            if (ftp_chdir($ftp_conn, self::$remote_dir)) {
+            if (ftp_chdir($ftp_conn, $remote_dir)) {
                 $this->cartalis_logs("Current directory is now: " . ftp_pwd($ftp_conn));
             } else {
                 $this->cartalis_logs("Couldn't change directory");
@@ -82,11 +82,14 @@ class ws_ftp extends ws_cartalis {
     /**
      * Get selected file to local
      * @param null $conn_id
+     * @param $remote_dir
+     * @param $tmp_dir
+     * @return string|null
      */
-    protected function ftpGet($conn_id=null){
+    protected function ftpGet($conn_id=null, $remote_dir, $tmp_dir){
         // path to remote file
-        $remote_file = self::$remote_dir.self::$remote_file;
-        $local_file = '/tmp/job'.date('mdyhis').'.txt';
+        $remote_file = $remote_dir.DIRECTORY_SEPARATOR.self::$remote_file;
+        $local_file = $tmp_dir.DIRECTORY_SEPARATOR.'job'.date('mdyhis').'.txt';
 
         // open some file to write to
         $handle = fopen($local_file, 'w');
@@ -104,23 +107,31 @@ class ws_ftp extends ws_cartalis {
          return $result;
     }
 
-
-
-
-
     /**
      * Application
+     * @param $host
+     * @param $user
+     * @param $password
+     * @param $remote_dir
+     * @param $tmp_dir
+     * @return string|null
      */
-    public function ftpExec($host, $user, $password){
+    public function ftpExec($host, $user, $password, $remote_dir, $tmp_dir){
         $resFile = null;
-        $ftp_conn = $this->ftpConnection($host, $user, $password);
+
+        if($host === null || $user === null || $password === null){
+            $this->cartalis_logs("Ftp parameters missing!");
+            return $resFile;
+        }
+
+        $ftp_conn = $this->ftpConnection($host, $user, $password, $remote_dir);
         if($ftp_conn !== false){
             //Custom ections
             //Files list
             $filesList = $this->ftpRawList($ftp_conn);
             if($filesList !== null){
                 $this->cartalis_logs("List of files: ".json_encode($filesList));
-                $resFile = $this->ftpGet($ftp_conn);
+                $resFile = $this->ftpGet($ftp_conn, $remote_dir, $tmp_dir);
             }else{
                 $this->cartalis_logs("No file presents!");
             }
@@ -128,9 +139,12 @@ class ws_ftp extends ws_cartalis {
             //Close connection
             $this->ftpCloseConnection($ftp_conn);
 
-            return $resFile;
+        }
+        else{
+            $this->cartalis_logs("Connection error!");
         }
 
+        return $resFile;
     }
 
 

@@ -39,18 +39,18 @@ class ws_cartalis{
      * [104] – Filler (Blank)
      *
      * Row record map
-     * [15] - Id-transazione
-     * [12] - Numero C/C beneficiario (Param3)
-     * [6] - Data-transazione (Nella forma aammgg)
-     * [3] - Tipo Documento (247 = premarcati Rav/Mav)
-     * [10] - Importo (In centesimi di euro)
-     * [8] - Ufficio e Sportello (CodiceCliente + OperatorCode)
-     * [1] - Divisa (2=Euro)
-     * [6] - Data contabile accredito (allibramento) (Nella forma aammgg)
-     * [16] - Codice Cliente
-     * [3] - Tipologia di pagamento (T1 (CNT), 2 (PBM), 3 (Carta di Credito))
-     * [1] - Codice Fisso (Const = 4)
-     * [119] - Filler (Blank)
+     * [15] -   Id-transazione
+     * [12] -   Numero C/C beneficiario (Param3)
+     * [6] -    Data-transazione (Nella forma aammgg)
+     * [3] -    Tipo Documento (247 = premarcati Rav/Mav)
+     * [10] -   Importo (In centesimi di euro)
+     * [8] -    Ufficio e Sportello (CodiceCliente + OperatorCode)
+     * [1] -    Divisa (2=Euro)
+     * [6] -    Data contabile accredito (allibramento) (Nella forma aammgg)
+     * [16] -   Codice Cliente
+     * [3] -    Tipologia di pagamento (T1 (CNT), 2 (PBM), 3 (Carta di Credito))
+     * [1] -    Codice Fisso (Const = 4)
+     * [119] -  Filler (Blank)
      */
     public function fileAnalize($filename){
         if($filename === null) {

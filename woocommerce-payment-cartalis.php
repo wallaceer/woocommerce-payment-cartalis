@@ -140,6 +140,20 @@ function init_wc_cartalis_payment_gateway() {
                     'description' => 'Password per la connessione ftp',
                     'default' => '',
                     'desc_tip' => true,
+                ),
+                'cartalis_ftp_path' => array(
+                    'title' => 'Cartalis FTP Path',
+                    'type' => 'text',
+                    'description' => 'Directory da cui recuperare il file',
+                    'default' => '/web/dev/',
+                    'desc_tip' => true,
+                ),
+                'cartalis_tmp_directory_' => array(
+                    'title' => 'Cartalis tmp directory',
+                    'type' => 'text',
+                    'description' => 'Directory di appoggio per la lavorazione dei file',
+                    'default' => '/tmp',
+                    'desc_tip' => true,
                 )
             );
         }
@@ -374,7 +388,7 @@ function init_wc_cartalis_payment_gateway() {
         // here's the function we'd like to call with our cron job
         function cartalis_ftp_function() {
 
-            echo 'ciao';
+            //echo 'ciao';
 
             #include __DIR__ . '/class/ws_ftp.php';
             #$ftp = new ws_ftp;
@@ -383,12 +397,12 @@ function init_wc_cartalis_payment_gateway() {
             // in this example we're sending an email
 
             // components for our email
-            $recepients = 'santi.walter@gmail.com';
-            $subject = 'Hello from your Cron Job';
-            $message = 'This is a test mail sent by WordPress automatically as per your schedule.';
+            // $recepients = 'santi.walter@gmail.com';
+            // $subject = 'Hello from your Cron Job';
+            // $message = 'This is a test mail sent by WordPress automatically as per your schedule.';
 
             // let's send it
-            wp_mail( 'hello@example.com', 'WP Crontrol', 'WP Crontrol rocks!' );
+            //wp_mail( 'hello@example.com', 'WP Crontrol', 'WP Crontrol rocks!' );
         }
 
         // add custom interval
