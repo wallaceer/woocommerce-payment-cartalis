@@ -45,15 +45,20 @@ $filejob = $ftp->ftpExec($host, $user, $password, $remote_dir, $tmp_dir, $file);
 if($filejob === false) {
     exit('FATAL ERROR: file not exist!');
 }else{
-
     //Unzip file
     $util = new ws_utilities();
-    $util->unzip($tmp_dir.DIRECTORY_SEPARATOR.$file, $tmp_dir);
+    $util->unzip($tmp_dir.DIRECTORY_SEPARATOR.$filejob, $tmp_dir);
+    $ftp->cartalis_logs("Downloaded file ".$filejob."\r\n");
 
     //Extracts data
+    $fileToAnalyze = preg_replace('/.[^.]*$/', '', $filejob).'.txt';
+    if(!file_exists('/tmp/'.$fileToAnalyze)){
+        return $ftp->cartalis_logs("FATAL ERROR: File to analyze ".$fileToAnalyze." not exist!\r\n");
+    }
+    $ftp->cartalis_logs("Analyzing file ".$fileToAnalyze."\r\n");
     $rowsData = [];
     $analysis = new ws_cartalis();
-    $paymentsRowsData = $analysis->fileAnalize($tmp_dir.DIRECTORY_SEPARATOR.$filetxt);
+    $paymentsRowsData = $analysis->fileAnalize($tmp_dir.DIRECTORY_SEPARATOR.$fileToAnalyze);
 }
 
 /**
@@ -72,10 +77,14 @@ foreach($paymentsRowsData as $prd){
 
         if($result !== false){
             $order = new WC_Order($order_id);
-            $order->update_status('processing', __('Pagamento CARTALIS accreditato in data ').$prd['dateAccredit']." (aammgg). ");
-            $ftp->cartalis_logs("Payment for order ".$order_id." updated to Processing!");
+            if($order->get_status() != 'processing'){
+                $order->update_status('processing', __('Pagamento CARTALIS accreditato in data ').$prd['dateAccredit']." (aammgg). ");
+                $ftp->cartalis_logs("\e[32mPayment for order ".$order_id." updated to Processing!\e[39m");
+            }else{
+                $ftp->cartalis_logs("\e[33mPayment for order ".$order_id." are already Processing!\e[39m");
+            }
         }else{
-            $ftp->cartalis_logs("ERROR: Order ".$order_id." to update not found!");
+            $ftp->cartalis_logs("\e[31mERROR: Order ".$order_id." to update not found!\e[39m");
         }
 
     }

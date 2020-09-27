@@ -128,35 +128,15 @@ class ws_ftp extends ws_cartalis {
         // path to remote file
         $remote_file = $file;
         $local_file_tmp = $tmp_dir.DIRECTORY_SEPARATOR.$file;
-        #$local_file = $tmp_dir.DIRECTORY_SEPARATOR.'file.txt';
-        #$local_file = $file;
-
-        // open some file to write to
-        #$handle = fopen($local_file, 'w');
 
         // try to download $remote_file and save it to $handle
         if(ftp_get($conn_id, $local_file_tmp, $remote_file, FTP_BINARY)){
-
-            #header("Content-type: application/x-rar-compressed");
-
-            // Also helps to send Content-length
-            #header("Content-length: " . filesize($local_file_tmp));
-
-            // Dump out the file contents
-            //echo file_get_contents($local_file_tmp);
-            #fwrite($handle, file_get_contents($local_file_tmp), filesize($local_file_tmp));
-
-
-            #if (ftp_nb_get($conn_id, $local_file, $remote_file, FTP_BINARY)) {
             $this->cartalis_logs("Successfully written $remote_file to $local_file_tmp");
-            #$this->cartalis_logs(file_get_contents($local_file_tmp));
             $result = true;
         } else {
             $this->cartalis_logs("There was a problem while downloading $remote_file to $local_file_tmp with connection ".$conn_id);
             $result = false;
         }
-
-        #fclose($handle);
         return $result;
     }
 
@@ -170,7 +150,7 @@ class ws_ftp extends ws_cartalis {
      * @param $file
      * @return string|null
      */
-    public function ftpExec($host, $user, $password, $remote_dir, $tmp_dir, $file){
+    public function ftpExec($host, $user, $password, $remote_dir, $tmp_dir, $file=null){
         $resFile = null;
 
         if($host === null || $user === null || $password === null){
@@ -186,7 +166,19 @@ class ws_ftp extends ws_cartalis {
             $filesList = $this->ftpRawList($ftp_conn, $remote_dir);
             if($filesList !== null){
                 $this->cartalis_logs("List of files: ".json_encode($filesList));
-                $resFile = $this->ftpGet($ftp_conn, $remote_dir, $tmp_dir, $file);
+                if($file !== null){
+                    //I know the name of file that I should download
+                    if($this->ftpGet($ftp_conn, $remote_dir, $tmp_dir, $file) === true){
+                        $resFile = $file;
+                    }
+                    else {
+                        return false;
+                    }
+                }
+                else{
+                    //I don't know the name of file that I should download, therefore I should download the last modified file from a list
+                    $resFile = $this->ftpGetLastModifiedFile($ftp_conn, $remote_dir, $tmp_dir);
+                }
             }else{
                 $this->cartalis_logs("No file presents!");
             }
@@ -210,8 +202,36 @@ class ws_ftp extends ws_cartalis {
         catch (\Exception $e){
             $this->cartalis_logs('Local file delete error: '.$e->getMessage());
         }
-
     }
+
+
+    public function ftpGetLastModifiedFile($ftp_conn, $remote_dir, $tmp_dir){
+        // get list of files on given path
+        $files = ftp_nlist($ftp_conn, '');
+
+        $mostRecent = array(
+            'time' => 0,
+            'file' => null
+        );
+
+        foreach ($files as $fl) {
+            // get the last modified time for the file
+            $time = ftp_mdtm($ftp_conn, $fl);
+
+            if ($time > $mostRecent['time']) {
+                // this file is the most recent so far
+                $mostRecent['time'] = $time;
+                $mostRecent['file'] = $fl;
+            }
+        }
+
+        if($this->ftpGet($ftp_conn, $remote_dir, $tmp_dir, $mostRecent['file']) === true){
+            return $mostRecent['file'];
+        }else{
+            return false;
+        }
+    }
+
 
 }
 
