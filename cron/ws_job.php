@@ -49,7 +49,6 @@ if($filejob === false) {
     //Unzip file
     $util = new ws_utilities();
     $util->unzip($tmp_dir.DIRECTORY_SEPARATOR.$file, $tmp_dir);
-    #echo "Analizing file ".$filejob;
 
     //Extracts data
     $rowsData = [];
