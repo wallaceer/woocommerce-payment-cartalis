@@ -45,43 +45,45 @@ $filejob = $ftp->ftpExec($host, $user, $password, $remote_dir, $tmp_dir, $file);
 if($filejob === false) {
     exit('FATAL ERROR: file not exist!');
 }else{
-    //echo $filejob;
+
     //Unzip file
     $util = new ws_utilities();
     $util->unzip($tmp_dir.DIRECTORY_SEPARATOR.$file, $tmp_dir);
     #echo "Analizing file ".$filejob;
+
+    //Extracts data
+    $rowsData = [];
     $analysis = new ws_cartalis();
-    $analysis->fileAnalize($tmp_dir.DIRECTORY_SEPARATOR.$filetxt);
+    $paymentsRowsData = $analysis->fileAnalize($tmp_dir.DIRECTORY_SEPARATOR.$filetxt);
 }
-/**
- * -------------------------
- * Download file and load it
- * -------------------------
- *
- * Tracciato Record
- * Il file dati per la rendicontazione contiene due tipi di record:
- *
- * record di dettaglio,
- * record di riepilogo (obbligatorio).
- *
- * In particolare, il contenuto di un file dati ha la seguente struttura:
- *
- * [Dettaglio]
- * Riepilogo
- *
- * Il file di rendicontazione contiene da 0 a n record di dettaglio e un record di riepilogo.
- * I campi dei record per questo file di rendicontazione sono a lunghezza fissa (senza caratteri separatori tra un campo e il successivo).
- * Il formato del record di dettaglio e di riepilogo sono specificati in un file in formato xml i cui nomi sono configurabili.
- */
-
 
 /**
- * Order management
+ * Order's payment update
  */
-$order = new WC_Order('87');
-echo $order->get_total()."\r\n";
+foreach($paymentsRowsData as $prd){
+    $order_id = str_replace("0", "", $prd['customerCode']);
+
+    if(preg_match("/[0-9]+/", $order_id)){
+        if ( !function_exists( 'wc_get_order' ) ) {
+            require_once '/includes/wc-order-functions.php';
+        }
+
+        // NOTICE! Understand what this does before running.
+        $result = wc_get_order($order_id);
+
+        if($result !== false){
+            $order = new WC_Order($order_id);
+            $order->update_status('processing', __('Pagamento CARTALIS accreditato in data ').$prd['dateAccredit']." (aammgg). ");
+            $ftp->cartalis_logs("Payment for order ".$order_id." updated to Processing!");
+        }else{
+            $ftp->cartalis_logs("ERROR: Order ".$order_id." to update not found!");
+        }
+
+    }
+
+}
 
 /**
  * At the end of job, should delete the local file
  */
-#$ftp->localFileDelete($tmp_dir.DIRECTORY_SEPARATOR.$file);
+$ftp->localFileDelete($tmp_dir.DIRECTORY_SEPARATOR.$file);

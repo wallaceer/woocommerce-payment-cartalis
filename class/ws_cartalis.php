@@ -47,12 +47,13 @@ class ws_cartalis{
      * [8] -    Ufficio e Sportello (CodiceCliente + OperatorCode)
      * [1] -    Divisa (2=Euro)
      * [6] -    Data contabile accredito (allibramento) (Nella forma aammgg)
-     * [16] -   Codice Cliente
+     * [16] -   Codice Cliente = Codice bollettino
      * [3] -    Tipologia di pagamento (T1 (CNT), 2 (PBM), 3 (Carta di Credito))
      * [1] -    Codice Fisso (Const = 4)
      * [119] -  Filler (Blank)
      */
     public function fileAnalize($filename){
+        $paymentsData = [];
         if($filename === null) {
             $this->cartalis_logs('ERROR: File empty!');
         }
@@ -95,10 +96,25 @@ class ws_cartalis{
                         \r\n"
                     );
 
+                    $paymentsData[] = [
+                        'transactionId' => $transaciontId,
+                        'ccNumber' => $ccNumber,
+                        'dateTransmission' => $dateTransmission,
+                        'docType' => $docType,
+                        'amount' => $amount,
+                        'office' => $office,
+                        'currency' => $currency,
+                        'dateAccredit' => $dateAccredit,
+                        'customerCode' => $customerCode,
+                        'paymentType' => $paymentType,
+                        'code' => $code
+                    ];
+
                     $this->cartalis_logs($pfv."\r\n");
                 }
             }
-
+            //$this->cartalis_logs(json_encode($paymentsData));
+            return $paymentsData;
         }
     }
 

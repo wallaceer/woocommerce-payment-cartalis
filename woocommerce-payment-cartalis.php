@@ -260,9 +260,16 @@ function init_wc_cartalis_payment_gateway() {
          */
         function ws_custom_checkout_field_update_order_meta( $order ) {
             $order_id = $order->get_id();
+            //Add barcode order meta tag
             $barcode = $this->generateBarcode( $order );
             if ( ! empty( $barcode ) ) {
                 update_post_meta( $order_id, 'cartalisBarcode', sanitize_text_field( $barcode ) );
+            }
+
+            //Add dispatch order meta tag
+            $dispatchcode = $this->generateDispatchCode($order_id);
+            if ( ! empty( $dispatchcode ) ) {
+                update_post_meta( $order_id, 'cartalisDispatchCode', sanitize_text_field( $dispatchcode ) );
             }
         }
 
@@ -277,8 +284,40 @@ function init_wc_cartalis_payment_gateway() {
                 . '<p>'.__('Pagamento tramite CARTALIS. <br />Codice a barre per eseguire il pagamento').':</p>'
                 . get_post_meta( $order_id, 'cartalisBarcode', true )
                 . '<p>'
-                . '<a href="'.$barcodeHttp.'" target="_blank"><img src="'.$barcodeHttp.'" width="300px/></a>'
-                . '</p>';
+                . '<a href="'.$barcodeHttp.'" target="_blank"><img src="'.$barcodeHttp.'" width="300px"/></a>'
+                . '</p>'
+                #. '<p>'
+                #. get_post_meta($order_id, 'cartalisDispatchCode', true)
+                #. '</p>'
+            ;
+        }
+
+        /**
+         * @param $order
+         * Dispatch code generation without check digit (Codice bollettino senza check digit)
+         */
+        public function generateDispatchCode($order_id){
+            $orderIdStringLenght = strlen($order_id);
+            $dispatch_code = '';
+            for($dc=1;$dc<=(16-$orderIdStringLenght);$dc++){
+                $dispatch_code .= '0';
+            }
+            $dispatch_code .= $order_id;
+            return $dispatch_code;
+        }
+
+        /**
+         * @param $orderId
+         * @return false|float|int
+         * Check digit calculated with expression Value - [Int(Value/93)]*93
+         */
+        public function generateCheckDigitModulo93($orderId){
+            if($orderId !== null) {
+                return $orderId - (intdiv($orderId, 93) * 93);
+            }
+            else{
+                return false;
+            }
         }
 
         /**
@@ -287,17 +326,23 @@ function init_wc_cartalis_payment_gateway() {
          * barcode generation
          */
         function generateBarcode( $order ){
+            //Order id/number
             $order_id = $order->get_id();
-            $default_amount = '000000';
 
             //prefisso standard che indica che i successivi 18 digit rappresentano il Codice Bollettino;
             $standard_prefix_a = '(8020)';
+
             //Codice bollettino
-            $dispatch_code = '0000000000000001';
-            $check_digit = '54';
+            $dispatch_code = $this->generateDispatchCode($order_id);
+
+            //Check digit
+            $check_digit = $this->generateCheckDigitModulo93($order_id);
+
             //prefisso standard che indica che i successivi 6 digit rappresentano l’importo della fattura;
             $standard_prefix_b = '(3902)';
+
             //importo della fattura in cui gli ultimi 2 digit rappresentano i centesimi.
+            $default_amount = '000000';
             $order_amount = str_replace(".", "",$order->get_total());
             $amount = substr_replace($default_amount, $order_amount, 6-strlen($order_amount), strlen($order_amount));
 
