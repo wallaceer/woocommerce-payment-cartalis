@@ -145,7 +145,7 @@ function init_wc_cartalis_payment_gateway() {
                     'title' => 'Cartalis FTP Path',
                     'type' => 'text',
                     'description' => 'Directory da cui recuperare il file',
-                    'default' => '/web/dev/',
+                    'default' => 'web/dev/',
                     'desc_tip' => true,
                 ),
                 'cartalis_tmp_directory_' => array(
@@ -289,17 +289,22 @@ function init_wc_cartalis_payment_gateway() {
         function generateBarcode( $order ){
             $order_id = $order->get_id();
             $default_amount = '000000';
+
+            //prefisso standard che indica che i successivi 18 digit rappresentano il Codice Bollettino;
+            $standard_prefix_a = '(8020)';
+            //Codice bollettino
+            $dispatch_code = '0000000000000001';
+            $check_digit = '54';
+            //prefisso standard che indica che i successivi 6 digit rappresentano l’importo della fattura;
+            $standard_prefix_b = '(3902)';
+            //importo della fattura in cui gli ultimi 2 digit rappresentano i centesimi.
             $order_amount = str_replace(".", "",$order->get_total());
             $amount = substr_replace($default_amount, $order_amount, 6-strlen($order_amount), strlen($order_amount));
-
-            $standard_prefix_a = '(8020)';
-            $standard_prefix_b = '(3902)';
-            $check_digit = '54';
 
             $code = $this->mandante_prefisso
                 .$this->mandante_codice_identificativo
                 .$standard_prefix_a
-                .'0000000000000001'
+                .$dispatch_code
                 .$check_digit
                 .$standard_prefix_b
                 .$amount;

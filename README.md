@@ -8,3 +8,5 @@ The plugin create:
 The order paid with CARTALIS will be set to pending status.
 Once a day the plugin check the cartalis payments report and update the order status if the order is paid.
 
+**Requirements**
+- PHP zip extension 

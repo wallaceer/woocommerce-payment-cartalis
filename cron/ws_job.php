@@ -36,14 +36,22 @@ if($ftp_status === 0 || $ftp_status === null) return;
 include __DIR__ . '/../class/ws_ftp.php';
 include __DIR__ . '/../class/ws_utilities.php';
 
+//Payments report file
+$file = 'DUFER5190220200914002758001.zip';
+$filetxt = 'DUFER5190220200914002758001.txt';
+
 $ftp = new ws_ftp();
-$filejob = $ftp->ftpExec($host, $user, $password, $remote_dir, $tmp_dir);
-if($filejob === null) {
-    exit('Error: file is empty!');
+$filejob = $ftp->ftpExec($host, $user, $password, $remote_dir, $tmp_dir, $file);
+if($filejob === false) {
+    exit('FATAL ERROR: file not exist!');
 }else{
-    echo "Analizing file ".$filejob;
+    //echo $filejob;
+    //Unzip file
+    $util = new ws_utilities();
+    $util->unzip($tmp_dir.DIRECTORY_SEPARATOR.$file, $tmp_dir);
+    #echo "Analizing file ".$filejob;
     $analysis = new ws_cartalis();
-    $analysis->fileAnalize($filejob);
+    $analysis->fileAnalize($tmp_dir.DIRECTORY_SEPARATOR.$filetxt);
 }
 /**
  * -------------------------
@@ -76,4 +84,4 @@ echo $order->get_total()."\r\n";
 /**
  * At the end of job, should delete the local file
  */
-$ftp->localFileDelete($filejob);
+#$ftp->localFileDelete($tmp_dir.DIRECTORY_SEPARATOR.$file);
