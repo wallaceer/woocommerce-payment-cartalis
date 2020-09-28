@@ -59,8 +59,8 @@ function init_wc_cartalis_payment_gateway() {
             add_action( 'woocommerce_admin_order_data_after_billing_address', array( $this, 'ws_custom_checkout_field_display_admin_order_meta'));
 
             // Customer Emails
-            add_action( 'woocommerce_email_before_order_table', array( $this, 'email_instructions' ), 10, 3 );
-            add_filter('woocommerce_email_attachments', array( $this, 'attach_file_woocommerce_email'), 10, 3);
+            add_action( 'woocommerce_email_after_order_table', array( $this, 'email_instructions' ), 10, 3 );
+            add_filter( 'woocommerce_email_attachments', array( $this, 'attach_file_woocommerce_email'), 10, 3);
 
             //Cron Job
             register_activation_hook (__FILE__, 'cartalis_cronstarter_activation');
@@ -140,6 +140,20 @@ function init_wc_cartalis_payment_gateway() {
                     'description' => 'Password per la connessione ftp',
                     'default' => '',
                     'desc_tip' => true,
+                ),
+                'cartalis_ftp_path' => array(
+                    'title' => 'Cartalis FTP Path',
+                    'type' => 'text',
+                    'description' => 'Directory da cui recuperare il file',
+                    'default' => 'web/dev/',
+                    'desc_tip' => true,
+                ),
+                'cartalis_tmp_directory_' => array(
+                    'title' => 'Cartalis tmp directory',
+                    'type' => 'text',
+                    'description' => 'Directory di appoggio per la lavorazione dei file',
+                    'default' => '/tmp',
+                    'desc_tip' => true,
                 )
             );
         }
@@ -159,6 +173,13 @@ function init_wc_cartalis_payment_gateway() {
 
                 // Mark as on-hold (we're awaiting the payment).
                 $order->update_status( apply_filters( 'woocommerce_bacs_process_payment_order_status', 'on-hold', $order ), __( 'Awaiting CARTALIS payment', 'woocommerce' ) );
+
+                //Add order note
+                // The text for the note
+                $note = '<a href="'.get_site_url().'/wp-content/uploads/deposit/'.$order_id.'.pdf" >Bollettino per il pagamento in ricevitoria</a>';
+
+                // Add the note
+                $order->add_order_note( $note, 1, 0 );
             } else {
                 $order->payment_complete();
             }
@@ -182,9 +203,11 @@ function init_wc_cartalis_payment_gateway() {
             $order = new WC_Order($order_id);
             if('wc_cartalis' === $order->get_payment_method()){
                 $this->generateBarcode( $order);
-                $barcodeHttp = get_site_url().'/wp-content/uploads/barcode/'.$order_id.'.png';
+                $barcodeHttp = get_site_url().'/wp-content/uploads/deposit/'.$order_id.'.pdf';
                 echo '<h2 class="woocommerce-order-details__title">Pagamento</h2>'
-                    . 'Pagamento tramite CARTALIS. Codice a barre per eseguire il pagamento <a href="'.$barcodeHttp.'" target="_blank"><img src="'.$barcodeHttp.'" width="450px" /></a>';
+                    . '<p>Hai scelto di pagare con CARTALIS.</p>'
+                    . '<p>In allegato all\'email di conferma ordine troverai il bollettino per effettuare il pagamento presso un qualsiasi punto LIS.</p>'
+                    . '<p><a href="'.$barcodeHttp.'" target="_blank">Puoi scaricare il bollettino anche cliccando quì</a></p>';
             }
         }
 
@@ -202,8 +225,12 @@ function init_wc_cartalis_payment_gateway() {
                 $orderId = $order->get_id();
                 $barcode = $this->generateBarcode( $order );
 
+                $text = '<h2 class="email-upsell-title">Pagamento</h2>'
+                        .'<p>In allegato alla presente email trovi il bollettino per il pagamento.</p>'
+                        .'<p>Puoi effettuare il pagamento in uno qualsiasi dei punti LIS.</p>';
+
                 if ( ! empty( $barcode ) ) {
-                    echo wp_kses_post( wpautop( wptexturize( 'codice a barre CARTALIS x pagamento <img src="'.get_site_url().'/wp-content/uploads/barcode/'.$orderId.'.png" />' ) ) . PHP_EOL );
+                    echo wp_kses_post( wpautop( wptexturize( $text ) ) . PHP_EOL );
                 }
 
             }
@@ -233,9 +260,16 @@ function init_wc_cartalis_payment_gateway() {
          */
         function ws_custom_checkout_field_update_order_meta( $order ) {
             $order_id = $order->get_id();
+            //Add barcode order meta tag
             $barcode = $this->generateBarcode( $order );
             if ( ! empty( $barcode ) ) {
                 update_post_meta( $order_id, 'cartalisBarcode', sanitize_text_field( $barcode ) );
+            }
+
+            //Add dispatch order meta tag
+            $dispatchcode = $this->generateDispatchCode($order_id);
+            if ( ! empty( $dispatchcode ) ) {
+                update_post_meta( $order_id, 'cartalisDispatchCode', sanitize_text_field( $dispatchcode ) );
             }
         }
 
@@ -250,24 +284,72 @@ function init_wc_cartalis_payment_gateway() {
                 . '<p>'.__('Pagamento tramite CARTALIS. <br />Codice a barre per eseguire il pagamento').':</p>'
                 . get_post_meta( $order_id, 'cartalisBarcode', true )
                 . '<p>'
-                . '<a href="'.$barcodeHttp.'" target="_blank"><img src="'.$barcodeHttp.'" width="300px/></a>'
-                . '</p>';
+                . '<a href="'.$barcodeHttp.'" target="_blank"><img src="'.$barcodeHttp.'" width="300px"/></a>'
+                . '</p>'
+                #. '<p>'
+                #. get_post_meta($order_id, 'cartalisDispatchCode', true)
+                #. '</p>'
+            ;
         }
 
+        /**
+         * @param $order
+         * Dispatch code generation without check digit (Codice bollettino senza check digit)
+         */
+        public function generateDispatchCode($order_id){
+            $orderIdStringLenght = strlen($order_id);
+            $dispatch_code = '';
+            for($dc=1;$dc<=(16-$orderIdStringLenght);$dc++){
+                $dispatch_code .= '0';
+            }
+            $dispatch_code .= $order_id;
+            return $dispatch_code;
+        }
+
+        /**
+         * @param $orderId
+         * @return false|float|int
+         * Check digit calculated with expression Value - [Int(Value/93)]*93
+         */
+        public function generateCheckDigitModulo93($orderId){
+            if($orderId !== null) {
+                return $orderId - (intdiv($orderId, 93) * 93);
+            }
+            else{
+                return false;
+            }
+        }
+
+        /**
+         * @param $order
+         * @return string
+         * barcode generation
+         */
         function generateBarcode( $order ){
+            //Order id/number
             $order_id = $order->get_id();
+
+            //prefisso standard che indica che i successivi 18 digit rappresentano il Codice Bollettino;
+            $standard_prefix_a = '(8020)';
+
+            //Codice bollettino
+            $dispatch_code = $this->generateDispatchCode($order_id);
+
+            //Check digit
+            $check_digit = $this->generateCheckDigitModulo93($order_id);
+
+            //prefisso standard che indica che i successivi 6 digit rappresentano l’importo della fattura;
+            $standard_prefix_b = '(3902)';
+
+            //importo della fattura in cui gli ultimi 2 digit rappresentano i centesimi.
             $default_amount = '000000';
             $order_amount = str_replace(".", "",$order->get_total());
             $amount = substr_replace($default_amount, $order_amount, 6-strlen($order_amount), strlen($order_amount));
 
-            $standard_prefix_a = '(8020)';
-            $standard_prefix_b = '(3902)';
-            $check_digit = '54';
-
             $code = $this->mandante_prefisso
                 .$this->mandante_codice_identificativo
                 .$standard_prefix_a
-                .'0000000000000001'
+                .$dispatch_code
                 .$check_digit
                 .$standard_prefix_b
                 .$amount;
@@ -356,7 +438,7 @@ function init_wc_cartalis_payment_gateway() {
         // here's the function we'd like to call with our cron job
         function cartalis_ftp_function() {
 
-            echo 'ciao';
+            //echo 'ciao';
 
             #include __DIR__ . '/class/ws_ftp.php';
             #$ftp = new ws_ftp;
@@ -365,12 +447,12 @@ function init_wc_cartalis_payment_gateway() {
             // in this example we're sending an email
 
             // components for our email
-            $recepients = 'santi.walter@gmail.com';
-            $subject = 'Hello from your Cron Job';
-            $message = 'This is a test mail sent by WordPress automatically as per your schedule.';
+            // $recepients = 'santi.walter@gmail.com';
+            // $subject = 'Hello from your Cron Job';
+            // $message = 'This is a test mail sent by WordPress automatically as per your schedule.';
 
             // let's send it
-            wp_mail( 'hello@example.com', 'WP Crontrol', 'WP Crontrol rocks!' );
+            //wp_mail( 'hello@example.com', 'WP Crontrol', 'WP Crontrol rocks!' );
         }
 
         // add custom interval

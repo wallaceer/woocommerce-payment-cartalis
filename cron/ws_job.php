@@ -25,18 +25,73 @@ $host = $payment_gateway->settings['cartalis_ftp_host'] ?? null;
 $user = $payment_gateway->settings['cartalis_ftp_user'] ?? null;
 $password = $payment_gateway->settings['cartalis_ftp_password'] ?? null;
 $ftp_status = $payment_gateway->settings['cartalis_ftp_status'] ?? null;
+$remote_dir = $payment_gateway->settings['cartalis_ftp_path'] ?? null;
+$tmp_dir = $payment_gateway->settings['cartalis_tmp_directory_'] ?? null;
+
 if($ftp_status === 0 || $ftp_status === null) return;
 
 /**
  * Ftp connection
  */
 include __DIR__ . '/../class/ws_ftp.php';
+include __DIR__ . '/../class/ws_utilities.php';
+
+//Payments report file
+$file = 'DUFER5190220200914002758001.zip';
+$filetxt = 'DUFER5190220200914002758001.txt';
+
 $ftp = new ws_ftp();
-$ftp->ftpExec($host, $user, $password);
+$filejob = $ftp->ftpExec($host, $user, $password, $remote_dir, $tmp_dir, $file);
+if($filejob === false) {
+    exit('FATAL ERROR: file not exist!');
+}else{
+    //Unzip file
+    $util = new ws_utilities();
+    $util->unzip($tmp_dir.DIRECTORY_SEPARATOR.$filejob, $tmp_dir);
+    $ftp->cartalis_logs("Downloaded file ".$filejob."\r\n");
+
+    //Extracts data
+    $fileToAnalyze = preg_replace('/.[^.]*$/', '', $filejob).'.txt';
+    if(!file_exists('/tmp/'.$fileToAnalyze)){
+        return $ftp->cartalis_logs("FATAL ERROR: File to analyze ".$fileToAnalyze." not exist!\r\n");
+    }
+    $ftp->cartalis_logs("Analyzing file ".$fileToAnalyze."\r\n");
+    $rowsData = [];
+    $analysis = new ws_cartalis();
+    $paymentsRowsData = $analysis->fileAnalize($tmp_dir.DIRECTORY_SEPARATOR.$fileToAnalyze);
+}
 
 /**
- * Order management
+ * Order's payment update
  */
-$order = new WC_Order('87');
-echo $order->get_total()."\r\n";
+foreach($paymentsRowsData as $prd){
+    $order_id = str_replace("0", "", $prd['customerCode']);
 
+    if(preg_match("/[0-9]+/", $order_id)){
+        if ( !function_exists( 'wc_get_order' ) ) {
+            require_once '/includes/wc-order-functions.php';
+        }
+
+        // NOTICE! Understand what this does before running.
+        $result = wc_get_order($order_id);
+
+        if($result !== false){
+            $order = new WC_Order($order_id);
+            if($order->get_status() != 'processing'){
+                $order->update_status('processing', __('Pagamento CARTALIS accreditato in data ').$prd['dateAccredit']." (aammgg). ");
+                $ftp->cartalis_logs("\e[32mPayment for order ".$order_id." updated to Processing!\e[39m");
+            }else{
+                $ftp->cartalis_logs("\e[33mPayment for order ".$order_id." are already Processing!\e[39m");
+            }
+        }else{
+            $ftp->cartalis_logs("\e[31mERROR: Order ".$order_id." to update not found!\e[39m");
+        }
+
+    }
+
+}
+
+/**
+ * At the end of job, should delete the local file
+ */
+$ftp->localFileDelete($tmp_dir.DIRECTORY_SEPARATOR.$file);
