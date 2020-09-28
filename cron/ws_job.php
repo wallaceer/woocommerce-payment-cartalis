@@ -59,39 +59,41 @@ if($filejob === false) {
     $rowsData = [];
     $analysis = new ws_cartalis();
     $paymentsRowsData = $analysis->fileAnalize($tmp_dir.DIRECTORY_SEPARATOR.$fileToAnalyze);
-}
 
-/**
- * Order's payment update
- */
-foreach($paymentsRowsData as $prd){
-    $order_id = str_replace("0", "", $prd['customerCode']);
 
-    if(preg_match("/[0-9]+/", $order_id)){
-        if ( !function_exists( 'wc_get_order' ) ) {
-            require_once '/includes/wc-order-functions.php';
-        }
+    /**
+     * Order's payment update
+     */
+    foreach($paymentsRowsData as $prd){
+        $order_id = str_replace("0", "", $prd['customerCode']);
 
-        // NOTICE! Understand what this does before running.
-        $result = wc_get_order($order_id);
-
-        if($result !== false){
-            $order = new WC_Order($order_id);
-            if($order->get_status() != 'processing'){
-                $order->update_status('processing', __('Pagamento CARTALIS accreditato in data ').$prd['dateAccredit']." (aammgg). ");
-                $ftp->cartalis_logs("\e[32mPayment for order ".$order_id." updated to Processing!\e[39m");
-            }else{
-                $ftp->cartalis_logs("\e[33mPayment for order ".$order_id." are already Processing!\e[39m");
+        if(preg_match("/[0-9]+/", $order_id)){
+            if ( !function_exists( 'wc_get_order' ) ) {
+                require_once '/includes/wc-order-functions.php';
             }
-        }else{
-            $ftp->cartalis_logs("\e[31mERROR: Order ".$order_id." to update not found!\e[39m");
+
+            $result = wc_get_order($order_id);
+
+            if($result !== false){
+                $order = new WC_Order($order_id);
+                if($order->get_status() != 'processing'){
+                    $order->update_status('processing', __('Pagamento CARTALIS accreditato in data ').$prd['dateAccredit']." (aammgg). ");
+                    $ftp->cartalis_logs("\e[32mPayment for order ".$order_id." updated to Processing!\e[39m");
+                }else{
+                    $ftp->cartalis_logs("\e[33mPayment for order ".$order_id." are already Processing!\e[39m");
+                }
+            }else{
+                $ftp->cartalis_logs("\e[31mERROR: Order ".$order_id." to update not found!\e[39m");
+            }
+
         }
 
     }
 
-}
+    /**
+     * At the end of job, should delete the local file
+     */
+    $ftp->localFileDelete($tmp_dir.DIRECTORY_SEPARATOR.$filejob);
+    $ftp->localFileDelete($tmp_dir.DIRECTORY_SEPARATOR.$fileToAnalyze);
 
-/**
- * At the end of job, should delete the local file
- */
-$ftp->localFileDelete($tmp_dir.DIRECTORY_SEPARATOR.$file);
+}
