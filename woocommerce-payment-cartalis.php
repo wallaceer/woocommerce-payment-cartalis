@@ -148,13 +148,20 @@ function init_wc_cartalis_payment_gateway() {
                     'default' => 'web/dev/',
                     'desc_tip' => true,
                 ),
-                'cartalis_tmp_directory_' => array(
+                'cartalis_tmp_directory' => array(
                     'title' => 'Cartalis tmp directory',
                     'type' => 'text',
                     'description' => 'Directory di appoggio per la lavorazione dei file',
                     'default' => '/tmp',
                     'desc_tip' => true,
-                )
+                ),
+                'cartalis_email_alert' => array(
+                'title' => 'Cartalis email alert',
+                'type' => 'text',
+                'description' => 'Casella email cui inviare le notifiche di errore',
+                'default' => 'mionome@miaemail.com',
+                'desc_tip' => true,
+            )
             );
         }
 
@@ -432,27 +439,6 @@ function init_wc_cartalis_payment_gateway() {
             $timestamp = wp_next_scheduled ('ws_cartalis_cronjob');
             // unschedule previous event if any
             wp_unschedule_event ($timestamp, 'ws_cartalis_cronjob');
-        }
-
-
-        // here's the function we'd like to call with our cron job
-        function cartalis_ftp_function() {
-
-            //echo 'ciao';
-
-            #include __DIR__ . '/class/ws_ftp.php';
-            #$ftp = new ws_ftp;
-            #$ftp->exec();
-            // do here what needs to be done automatically as per your schedule
-            // in this example we're sending an email
-
-            // components for our email
-            // $recepients = 'santi.walter@gmail.com';
-            // $subject = 'Hello from your Cron Job';
-            // $message = 'This is a test mail sent by WordPress automatically as per your schedule.';
-
-            // let's send it
-            //wp_mail( 'hello@example.com', 'WP Crontrol', 'WP Crontrol rocks!' );
         }
 
         // add custom interval

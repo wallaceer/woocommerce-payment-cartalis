@@ -26,7 +26,8 @@ $user = $payment_gateway->settings['cartalis_ftp_user'] ?? null;
 $password = $payment_gateway->settings['cartalis_ftp_password'] ?? null;
 $ftp_status = $payment_gateway->settings['cartalis_ftp_status'] ?? null;
 $remote_dir = $payment_gateway->settings['cartalis_ftp_path'] ?? null;
-$tmp_dir = $payment_gateway->settings['cartalis_tmp_directory_'] ?? null;
+$tmp_dir = $payment_gateway->settings['cartalis_tmp_directory'] ?? null;
+$email_alert = $payment_gateway->settings['cartalis_email_alert'] ?? null;
 
 if($ftp_status === 0 || $ftp_status === null) return;
 
@@ -37,13 +38,15 @@ include __DIR__ . '/../class/ws_ftp.php';
 include __DIR__ . '/../class/ws_utilities.php';
 
 //Payments report file
-$file = 'DUFER5190220200914002758001.zip';
-$filetxt = 'DUFER5190220200914002758001.txt';
+$file = null; //'DUFER5190220200914002758001.zip';
+//$filetxt = 'DUFER5190220200914002758001.txt';
 
 $ftp = new ws_ftp();
 $filejob = $ftp->ftpExec($host, $user, $password, $remote_dir, $tmp_dir, $file);
-if($filejob === false) {
-    exit('FATAL ERROR: file not exist!');
+
+if($filejob === false || $filejob === null) {
+    $ftp->cartalis_email($email_alert, 'FATAL ERROR CARTALIS: Il file di rendicontazione per il giorno '.date("d-m-Y").' sul server ftp non esiste!');
+    return $ftp->cartalis_logs("FATAL ERROR: file not exist!!\r\n");
 }else{
     //Unzip file
     $util = new ws_utilities();

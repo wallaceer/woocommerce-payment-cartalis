@@ -66,7 +66,6 @@ class ws_cartalis{
             $this->cartalis_logs("\nPayments Rows: \n");
             //$this->cartalis_logs(json_encode($_newFile));
             foreach ($_newFile as $pfi => $pfv){
-                //$this->cartalis_logs("\nRow ".$pfi.": ".$pfv);
                 //Exclude last rows, because this is a summary
                 if($pfi < count($_newFile)-1){
                     //Row data mapping
@@ -113,7 +112,6 @@ class ws_cartalis{
                     $this->cartalis_logs($pfv."\r\n");
                 }
             }
-            //$this->cartalis_logs(json_encode($paymentsData));
             return $paymentsData;
         }
     }
@@ -125,6 +123,21 @@ class ws_cartalis{
     public function cartalis_logs($message) {
         if(self::$debug === 1){
             $this->logWrite($message);
+        }
+    }
+
+    public function cartalis_email($mailto, $message){
+        if(self::$debug === 1){
+            $site_title = get_bloginfo( 'name' );
+            $subject = $site_title.' - Cartalis error';
+            $headers = '';
+
+            $sent_message = mail( $mailto, $subject, json_encode($message), $headers);
+            if ( $sent_message === true) {
+                $this->cartalis_logs('Sent email for Cartalis error.');
+            } else {
+                $this->cartalis_logs('Problem on sending email for Cartalis error.');
+            }
         }
     }
 
