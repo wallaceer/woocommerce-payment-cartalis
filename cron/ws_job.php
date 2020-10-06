@@ -28,6 +28,8 @@ $ftp_status = $payment_gateway->settings['cartalis_ftp_status'] ?? null;
 $remote_dir = $payment_gateway->settings['cartalis_ftp_path'] ?? null;
 $tmp_dir = $payment_gateway->settings['cartalis_tmp_directory'] ?? null;
 $email_alert = $payment_gateway->settings['cartalis_email_alert'] ?? null;
+$status_paid = $payment_gateway->settings['cartalis_status_order_paid'] ?? null;
+$status_new_order = sanitize_text_field($payment_gateway->settings['cartalis_status_new_order']) ?? null;
 
 if($ftp_status === 0 || $ftp_status === null) return;
 
@@ -79,11 +81,11 @@ if($filejob === false || $filejob === null) {
 
             if($result !== false){
                 $order = new WC_Order($order_id);
-                if($order->get_status() != 'processing'){
-                    $order->update_status('processing', __('Pagamento CARTALIS accreditato in data ').$prd['dateAccredit']." (aammgg). ");
-                    $ftp->cartalis_logs("\e[32mPayment for order ".$order_id." updated to Processing!\e[39m");
+                if($order->get_status() === $status_new_order){
+                    $order->update_status($status_paid, __('Pagamento CARTALIS accreditato in data ').$prd['dateAccredit']." (aammgg). ");
+                    $ftp->cartalis_logs("\e[32mPayment for order ".$order_id." updated to $status_paid!\e[39m");
                 }else{
-                    $ftp->cartalis_logs("\e[33mPayment for order ".$order_id." are already Processing!\e[39m");
+                    $ftp->cartalis_logs("\e[33mPayment for order ".$order_id." are already $status_paid or $status_paid is null!\e[39m");
                 }
             }else{
                 $ftp->cartalis_logs("\e[31mERROR: Order ".$order_id." to update not found!\e[39m");

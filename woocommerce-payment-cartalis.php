@@ -46,6 +46,7 @@ function init_wc_cartalis_payment_gateway() {
             $this->init_settings();
             $this->mandante_prefisso = sanitize_text_field($this->get_option('mandante_prefisso'));
             $this->mandante_codice_identificativo = sanitize_text_field($this->get_option('mandante_codice_identificativo'));
+            $this->cartalis_status_new_order = sanitize_text_field($this->get_option('cartalis_status_new_order'));
 
             // Define user set variables.
             $this->enabled = $this->get_option('enabled');
@@ -161,7 +162,21 @@ function init_wc_cartalis_payment_gateway() {
                 'description' => 'Casella email cui inviare le notifiche di errore',
                 'default' => 'mionome@miaemail.com',
                 'desc_tip' => true,
-            )
+                ),
+                'cartalis_status_new_order' => array(
+                    'title' => 'Cartalis New Order Status',
+                    'type' => 'text',
+                    'description' => 'Stato di lavorazione per il nuovo ordine',
+                    'default' => 'pending',
+                    'desc_tip' => true,
+                ),
+                'cartalis_status_order_paid' => array(
+                    'title' => 'Cartalis Paid Order Status',
+                    'type' => 'text',
+                    'description' => 'Stato di lavorazione per ordine pagato',
+                    'default' => 'on-hold',
+                    'desc_tip' => true,
+                )
             );
         }
 
@@ -179,7 +194,7 @@ function init_wc_cartalis_payment_gateway() {
                 $this->generateDepositPdf($order_id);
 
                 // Mark as on-hold (we're awaiting the payment).
-                $order->update_status( apply_filters( 'woocommerce_bacs_process_payment_order_status', 'on-hold', $order ), __( 'Awaiting CARTALIS payment', 'woocommerce' ) );
+                $order->update_status( apply_filters( 'woocommerce_bacs_process_payment_order_status', $this->cartalis_status_new_order, $order ), __( 'Awaiting CARTALIS payment', 'woocommerce' ) );
 
                 //Add order note
                 // The text for the note
@@ -253,9 +268,12 @@ function init_wc_cartalis_payment_gateway() {
          */
         function attach_file_woocommerce_email($attachments, $id, $object)
         {
-            $attachmentFile = $this->uploadDir['basedir'] . '/deposit/'.$object->get_id().'.pdf';
-            if ( file_exists( $attachmentFile ) ) {
-                $attachments[] = $attachmentFile;
+            $allowed_statuses = array( 'new_order' );
+            if( isset( $id ) && in_array ( $id, $allowed_statuses ) ) {
+                $attachmentFile = $this->uploadDir['basedir'] . '/deposit/' . $object->get_id() . '.pdf';
+                if (is_readable($attachmentFile)) {
+                    $attachments[] = $attachmentFile;
+                }
             }
             return $attachments;
         }
