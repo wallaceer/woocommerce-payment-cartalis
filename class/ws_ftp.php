@@ -134,7 +134,13 @@ class ws_ftp extends ws_cartalis {
                 }
                 else{
                     //I don't know the name of file that I should download, therefore I should download the last modified file from a list
-                    $resFile = $this->ftpGetLastModifiedFile($ftp_conn, $remote_dir, $tmp_dir);
+                    $filedata = $this->ftpGetLastModifiedFile($ftp_conn, $remote_dir, $tmp_dir);
+                    if($filedata['filetime'] == date("Y-m-d")){
+                        $resFile = $filedata['file'];
+                    }
+                    else{
+                        $this->cartalis_logs("File downloaded is a wrong file!");
+                    }
                 }
             }else{
                 $this->cartalis_logs("No file presents!");
@@ -183,8 +189,9 @@ class ws_ftp extends ws_cartalis {
         }
 
         if(preg_match("/[0-9a-zA-Z]/", $mostRecent['file'])){
+            //$this->cartalis_logs('File timestamp: '.date("Y-m-d", $mostRecent['time']).' - '.$mostRecent['time']);
             if($this->ftpGet($ftp_conn, $remote_dir, $tmp_dir, $mostRecent['file']) === true){
-                return $mostRecent['file'];
+                return array('file'=>$mostRecent['file'], 'filetime'=>$mostRecent['time']);
             }else{
                 return false;
             }
