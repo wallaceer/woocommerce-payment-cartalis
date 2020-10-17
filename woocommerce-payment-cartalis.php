@@ -176,6 +176,13 @@ function init_wc_cartalis_payment_gateway() {
                     'description' => 'Stato di lavorazione per ordine pagato',
                     'default' => 'on-hold',
                     'desc_tip' => true,
+                ),
+                'cartalis_log' => array(
+                    'title' => 'Cartalis Log File Path',
+                    'type' => 'text',
+                    'description' => 'Path file di log',
+                    'default' => '/var/log',
+                    'desc_tip' => true,
                 )
             );
         }
