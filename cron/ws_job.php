@@ -101,4 +101,14 @@ if($filejob === false || $filejob === null) {
     $ftp->localFileDelete($tmp_dir.DIRECTORY_SEPARATOR.$filejob);
     $ftp->localFileDelete($tmp_dir.DIRECTORY_SEPARATOR.$fileToAnalyze);
 
+    /**
+     * Zipping yesterady log file
+     */
+    $util->wsZip();
+
+    /**
+     * Empty log file
+     */
+    $util->emptyFileLog();
+
 }
