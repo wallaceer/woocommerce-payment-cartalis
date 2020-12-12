@@ -5,7 +5,7 @@
 * Description: CARTALIS Payment
 * Author: Walter Santi
 * Author URI: https://waltersanti.info
-* Version: 1.2.0
+* Version: 1.2.1
 *
 * @package WC_Admin
 */
