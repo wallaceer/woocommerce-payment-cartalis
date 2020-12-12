@@ -70,7 +70,9 @@ if($filejob === false || $filejob === null) {
      * Order's payment update
      */
     foreach($paymentsRowsData as $prd){
-        $order_id = str_replace("0", "", $prd['customerCode']);
+        //Remove 0 at the beginning
+        $order_id = (int)$prd['customerCode'];
+        $order_id = (string) $order_id;
 
         if(preg_match("/[0-9]+/", $order_id)){
             if ( !function_exists( 'wc_get_order' ) ) {
@@ -82,7 +84,7 @@ if($filejob === false || $filejob === null) {
             if($result !== false){
                 $order = new WC_Order($order_id);
                 if($order->get_status() === $status_new_order){
-                    $order->update_status($status_paid, __('Pagamento CARTALIS accreditato in data ').$prd['dateAccredit']." (aammgg). ");
+                    $order->update_status($status_paid, __('Pagamento CARTALIS registrato in data '.$prd['dateTransmission'].' e accreditato in data ').$prd['dateAccredit']." (aammgg). ", true);
                     $ftp->cartalis_logs("\e[32mPayment for order ".$order_id." updated to $status_paid!\e[39m");
                 }else{
                     $ftp->cartalis_logs("\e[33mPayment for order ".$order_id." are already $status_paid or $status_paid is null!\e[39m");
