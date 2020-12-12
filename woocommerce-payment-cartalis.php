@@ -193,7 +193,7 @@ function init_wc_cartalis_payment_gateway() {
                 $this->generateDepositPdf($order_id);
 
                 // Mark as on-hold (we're awaiting the payment).
-                $order->update_status( apply_filters( 'woocommerce_bacs_process_payment_order_status', $this->cartalis_status_new_order, $order ), __( 'Awaiting CARTALIS payment', 'woocommerce' ) );
+                #$order->update_status( apply_filters( 'woocommerce_bacs_process_payment_order_status', $this->cartalis_status_new_order, $order ), __( 'Awaiting CARTALIS payment', 'woocommerce' ) );
 
                 //Add order note
                 // The text for the note
