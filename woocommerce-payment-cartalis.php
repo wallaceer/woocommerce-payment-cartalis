@@ -267,8 +267,7 @@ function init_wc_cartalis_payment_gateway() {
          */
         function attach_file_woocommerce_email($attachments, $id, $object)
         {
-            $allowed_statuses = array( 'new_order' );
-            if( isset( $id ) && in_array ( $id, $allowed_statuses ) ) {
+            if( isset( $id )  ) {
                 $attachmentFile = $this->uploadDir['basedir'] . '/deposit/' . $object->get_id() . '.pdf';
                 if (is_readable($attachmentFile)) {
                     $attachments[] = $attachmentFile;
