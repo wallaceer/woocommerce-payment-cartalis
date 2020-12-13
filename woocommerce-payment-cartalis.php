@@ -303,19 +303,20 @@ function init_wc_cartalis_payment_gateway() {
          * Display field value on the order edit page
          */
         function ws_custom_checkout_field_display_admin_order_meta( $order ){
-            $order_id = $order->get_id();
-            $barcodeHttp = '//'.$_SERVER['HTTP_HOST'].'/wp-content/uploads/barcode/'.$order_id.'.png';
 
-            echo '<h3>Pagamento</h3>'
-                . '<p>'.__('Pagamento tramite CARTALIS. <br />Codice a barre per eseguire il pagamento').':</p>'
-                . get_post_meta( $order_id, 'cartalisBarcode', true )
-                . '<p>'
-                . '<a href="'.$barcodeHttp.'" target="_blank"><img src="'.$barcodeHttp.'" width="300px"/></a>'
-                . '</p>'
-                #. '<p>'
-                #. get_post_meta($order_id, 'cartalisDispatchCode', true)
-                #. '</p>'
-            ;
+            if ( $order->get_payment_method() == 'wc_cartalis') {
+                $order_id = $order->get_id();
+                $barcodeHttp = '//'.$_SERVER['HTTP_HOST'].'/wp-content/uploads/barcode/'.$order_id.'.png';
+
+                echo '<h3>Pagamento</h3>'
+                    . '<p>'.__('Pagamento tramite CARTALIS. <br />Codice a barre per eseguire il pagamento').':</p>'
+                    . get_post_meta( $order_id, 'cartalisBarcode', true )
+                    . '<p>'
+                    . '<a href="'.$barcodeHttp.'" target="_blank"><img src="'.$barcodeHttp.'" width="300px"/></a>'
+                    . '</p>'
+                ;
+            }
+
         }
 
         /**
