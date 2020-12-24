@@ -421,9 +421,9 @@ function init_wc_cartalis_payment_gateway() {
             $barcode = $this->uploadDir['basedir'].'/barcode/'.$order_id.'.png';
             $filename = $this->uploadDir['basedir'].'/deposit/'.$order_id.'.pdf';
 
-            $text_top = utf8_decode("Vai in una tabaccheria, edicola o bar PUNTOLIS, puoi pagare in modo comodo e veloce semplicemente mostrando il codice a barre riportato sotto.");
+            $text_top = utf8_decode("Vai in una tabaccheria PUNTOLIS, edicola o bar convenzionati con CartaLIS IMEL S.p.A., puoi pagare in modo comodo e veloce semplicemente mostrando il codice a barre riportato sotto.");
             $text_top1 = utf8_decode("Il pagamento può essere effettuato con carte di credito e prepagate VISA e MASTERCARD, con carte PagoBancomat o contanti.");
-            $text_top2 = utf8_decode("Cerca il punto più vicino a te su www.puntolis.it");
+            $text_top2 = utf8_decode("Cerca il PUNTOLIS più vicino a te su www.cartalis.it");
 
             require( __DIR__ . '/ws_fpdf.php');
             $pdf = new ws_fpdf();
