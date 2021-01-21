@@ -200,7 +200,7 @@ function init_wc_cartalis_payment_gateway() {
 
                 //Add order note
                 // The text for the note
-                $note = '<a href="'.get_site_url().'/wp-content/uploads/deposit/'.$order_id.'.pdf" >Bollettino per il pagamento in ricevitoria</a>';
+                $note = '<a href="'.get_site_url().'/wp-content/uploads/deposit/'.$order_id.'.pdf" >Bollettino per il pagamento nelle tabaccherie PUNTOLIS, edicola o bar convenzionati con CartaLIS IMEL S.p.A.</a>';
 
                 // Add the note
                 $order->add_order_note( $note, 1, 0 );
