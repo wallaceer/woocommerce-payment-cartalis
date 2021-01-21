@@ -200,7 +200,7 @@ function init_wc_cartalis_payment_gateway() {
 
                 //Add order note
                 // The text for the note
-                $note = '<a href="'.get_site_url().'/wp-content/uploads/deposit/'.$order_id.'.pdf" >Bollettino per il pagamento nelle tabaccherie PUNTOLIS, edicola o bar convenzionati con CartaLIS IMEL S.p.A.</a>';
+                $note = '<a href="'.get_site_url().'/wp-content/uploads/deposit/'.$order_id.'.pdf" >'.__('Bollettino per il pagamento nelle tabaccherie PUNTOLIS, edicola o bar convenzionati con CartaLIS IMEL S.p.A.').'</a>';
 
                 // Add the note
                 $order->add_order_note( $note, 1, 0 );
@@ -228,10 +228,10 @@ function init_wc_cartalis_payment_gateway() {
             if('wc_cartalis' === $order->get_payment_method()){
                 $this->generateBarcode( $order);
                 $barcodeHttp = get_site_url().'/wp-content/uploads/deposit/'.$order_id.'.pdf';
-                echo '<h2 class="woocommerce-order-details__title">Pagamento</h2>'
-                    . '<p>Hai scelto di pagare con CARTALIS.</p>'
-                    . '<p>In allegato all\'email di conferma ordine troverai il bollettino per effettuare il pagamento presso un qualsiasi punto LIS.</p>'
-                    . '<p><a href="'.$barcodeHttp.'" target="_blank">Puoi scaricare il bollettino anche cliccando quì</a></p>';
+                echo '<h2 class="woocommerce-order-details__title">'.__('Pagamento').'</h2>'
+                    . '<p>'.__('Hai scelto di pagare con CARTALIS.').'</p>'
+                    . '<p>'.__('In allegato alla email di conferma ordine troverai il bollettino per effettuare il pagamento presso un qualsiasi punto LIS.').'</p>'
+                    . '<p><a href="'.$barcodeHttp.'" target="_blank">'.__('Puoi scaricare il bollettino anche cliccando quì').'</a></p>';
             }
         }
 
@@ -249,9 +249,9 @@ function init_wc_cartalis_payment_gateway() {
                 $orderId = $order->get_id();
                 $barcode = $this->generateBarcode( $order );
 
-                $text = '<h2 class="email-upsell-title">Pagamento</h2>'
-                        .'<p>In allegato alla presente email trovi il bollettino per il pagamento.</p>'
-                        .'<p>Puoi effettuare il pagamento in uno qualsiasi dei punti LIS.</p>';
+                $text = '<h2 class="email-upsell-title">'.__('Pagamento').'</h2>'
+                        .'<p>'.__('In allegato alla presente email trovi il bollettino per il pagamento.').'</p>'
+                        .'<p>'.__('Puoi effettuare il pagamento in uno qualsiasi dei punti LIS.').'</p>';
 
                 if ( ! empty( $barcode ) ) {
                     echo wp_kses_post( wpautop( wptexturize( $text ) ) . PHP_EOL );
