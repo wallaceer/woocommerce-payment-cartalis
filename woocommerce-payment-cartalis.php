@@ -430,7 +430,7 @@ function init_wc_cartalis_payment_gateway() {
             $pdf->AddPage("P", 'A4');
             $pdf->SetFont('Times','B',8);
             $pdf->SetXY(4,4);
-            $pdf->Cell(85,10,'Bollettino di pagamento per l\'ordine '.$order_id );
+            $pdf->Cell(85,10,'Documento riepilogativo per il pagamento per l\'ordine '.$order_id );
             $pdf->SetFont('Times','',8);
             $pdf->SetXY(4,15);
             $pdf->drawTextBox($text_top, 85, 10, 'L', 'T', false);
