@@ -6,6 +6,7 @@
 * Author: Walter Santi
 * Author URI: https://waltersanti.info
 * Version: 1.2.3
+* WC tested up to: 4.8.0
 *
 * @package WC_Admin
 */

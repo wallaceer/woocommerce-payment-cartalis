@@ -65,51 +65,53 @@ class ws_cartalis{
             $this->cartalis_logs('Summary Row (Last row): '.end($_newFile));
             $this->cartalis_logs("\nPayments Rows: \n");
             //$this->cartalis_logs(json_encode($_newFile));
-            foreach ($_newFile as $pfi => $pfv){
-                //Exclude last rows, because this is a summary
-                if($pfi < count($_newFile)-1){
-                    //Row data mapping
-                    $transaciontId = substr($pfv, 0, 15);
-                    $ccNumber = substr($pfv, 15, 12);
-                    $dateTransmission = substr($pfv, 27, 6);
-                    $docType = substr($pfv, 33, 3);
-                    $amount = substr($pfv, 36, 10);
-                    $office = substr($pfv, 46, 8);
-                    $currency = substr($pfv, 54, 1);
-                    $dateAccredit = substr($pfv, 55, 6);
-                    $customerCode = substr($pfv, 61, 16);
-                    $paymentType = substr($pfv, 77, 3);
-                    $code = substr($pfv, 80, 1);
-                    $this->cartalis_logs(
-                        "ID: $transaciontId\n
-                        CC Number: $ccNumber\n
-                        Date Transmission: $dateTransmission\n
-                        Doc Type: $docType\n
-                        Amount: $amount\n
-                        Office: $office\n
-                        Currency: $currency\n
-                        Date Accredit: $dateAccredit\n
-                        Customer Code: $customerCode\n
-                        Payment Type: $paymentType\n
-                        Code: $code\n
-                        \r\n"
-                    );
+            if(count($_newFile)>1){
+                foreach ($_newFile as $pfi => $pfv){
+                    //Exclude last rows, because this is a summary
+                    if($pfi < count($_newFile)-1){
+                        //Row data mapping
+                        $transaciontId = substr($pfv, 0, 15);
+                        $ccNumber = substr($pfv, 15, 12);
+                        $dateTransmission = substr($pfv, 27, 6);
+                        $docType = substr($pfv, 33, 3);
+                        $amount = substr($pfv, 36, 10);
+                        $office = substr($pfv, 46, 8);
+                        $currency = substr($pfv, 54, 1);
+                        $dateAccredit = substr($pfv, 55, 6);
+                        $customerCode = substr($pfv, 61, 16);
+                        $paymentType = substr($pfv, 77, 3);
+                        $code = substr($pfv, 80, 1);
+                        $this->cartalis_logs(
+                            "ID: $transaciontId\n
+                            CC Number: $ccNumber\n
+                            Date Transmission: $dateTransmission\n
+                            Doc Type: $docType\n
+                            Amount: $amount\n
+                            Office: $office\n
+                            Currency: $currency\n
+                            Date Accredit: $dateAccredit\n
+                            Customer Code: $customerCode\n
+                            Payment Type: $paymentType\n
+                            Code: $code\n
+                            \r\n"
+                        );
 
-                    $paymentsData[] = [
-                        'transactionId' => $transaciontId,
-                        'ccNumber' => $ccNumber,
-                        'dateTransmission' => $dateTransmission,
-                        'docType' => $docType,
-                        'amount' => $amount,
-                        'office' => $office,
-                        'currency' => $currency,
-                        'dateAccredit' => $dateAccredit,
-                        'customerCode' => $customerCode,
-                        'paymentType' => $paymentType,
-                        'code' => $code
-                    ];
+                        $paymentsData[] = [
+                            'transactionId' => $transaciontId,
+                            'ccNumber' => $ccNumber,
+                            'dateTransmission' => $dateTransmission,
+                            'docType' => $docType,
+                            'amount' => $amount,
+                            'office' => $office,
+                            'currency' => $currency,
+                            'dateAccredit' => $dateAccredit,
+                            'customerCode' => $customerCode,
+                            'paymentType' => $paymentType,
+                            'code' => $code
+                        ];
 
-                    $this->cartalis_logs($pfv."\r\n");
+                        $this->cartalis_logs($pfv."\r\n");
+                    }
                 }
             }
             return $paymentsData;
