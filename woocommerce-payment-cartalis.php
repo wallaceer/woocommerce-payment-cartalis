@@ -3,7 +3,7 @@
 * Plugin Name: CARTALIS Payment for Woocommerce
 * Plugin URI: https://blog.waltersanti.info
 * Description: CARTALIS Payment
-* Author: Walter Santi
+* Author: WiTech
 * Author URI: https://waltersanti.info
 * Version: 1.2.3
 * WC tested up to: 4.8.0
