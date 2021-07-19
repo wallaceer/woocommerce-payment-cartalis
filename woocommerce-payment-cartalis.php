@@ -37,8 +37,8 @@ function init_wc_cartalis_payment_gateway() {
 
             // Required fields
             $this->id = 'wc_cartalis';
-            $this->method_title = 'CARTALIS';
-            $this->title = __( 'CARTALIS', 'woocommerce' );
+            $this->method_title = 'PUNTOLIS';
+            $this->title = __( 'PUNTOLIS', 'woocommerce' );
             $this->has_fields = true;
             $this->method_description = __('Accetta pagamenti tramite Lottomatica', 'woocommerce');
 
@@ -76,7 +76,7 @@ function init_wc_cartalis_payment_gateway() {
                 'enabled' => array(
                     'title' => 'Enable/Disable',
                     'type' => 'checkbox',
-                    'label' => __('Abilita CARTALIS'),
+                    'label' => __('Abilita PUNTOLIS'),
                     'default' => 'yes'
                 ),
                 'title' => array(
