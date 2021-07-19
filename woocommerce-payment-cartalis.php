@@ -83,15 +83,15 @@ function init_wc_cartalis_payment_gateway() {
                     'title' => __('Title'),
                     'type' => 'text',
                     'description' => __('Payment title in checkout page'),
-                    'default' => 'CARTALIS',
+                    'default' => 'PUNTOLIS',
                     'desc_tip' => true,
                 ),
                 'description' => array(
                     'title' => __('Description'),
                     'type' => 'textarea',
                     'css' => 'width:500px;',
-                    'default' => __('Pay with CARTALIS'),
-                    'description' => __('Pay with CARTALIS'),
+                    'default' => __('Pay with PUNTOLIS'),
+                    'description' => __('Pay with PUNTOLIS'),
                 ),
                 'mandante_prefisso' => array(
                     'title' => __('Mandante, prefisso'),
@@ -197,11 +197,11 @@ function init_wc_cartalis_payment_gateway() {
                 //IT'S IMPORTANT FOR SENDING ODER CONFIRMATION EMAIL
                 $order->update_status( 'on-hold', __( 'Awaiting offline payment', 'wc-gateway-offline' ) );
                 //Set order status needed by flow
-                $order->update_status( apply_filters( 'woocommerce_bacs_process_payment_order_status', $this->cartalis_status_new_order, $order ), __( 'Awaiting CARTALIS payment', 'woocommerce' ) );
+                $order->update_status( apply_filters( 'woocommerce_bacs_process_payment_order_status', $this->cartalis_status_new_order, $order ), __( 'Awaiting PUNTOLIS payment', 'woocommerce' ) );
 
                 //Add order note
                 // The text for the note
-                $note = '<a href="'.get_site_url().'/wp-content/uploads/deposit/'.$order_id.'.pdf" >'.__('Bollettino per il pagamento nelle tabaccherie PUNTOLIS, edicola o bar convenzionati con CartaLIS IMEL S.p.A.').'</a>';
+                $note = '<a href="'.get_site_url().'/wp-content/uploads/deposit/'.$order_id.'.pdf" >'.__('Bollettino per il pagamento nelle tabaccherie PUNTOLIS, edicola o bar convenzionati con LIS Pay S.p.A.').'</a>';
 
                 // Add the note
                 $order->add_order_note( $note, 1, 0 );
@@ -230,7 +230,7 @@ function init_wc_cartalis_payment_gateway() {
                 $this->generateBarcode( $order);
                 $barcodeHttp = get_site_url().'/wp-content/uploads/deposit/'.$order_id.'.pdf';
                 echo '<h2 class="woocommerce-order-details__title">'.__('Pagamento').'</h2>'
-                    . '<p>'.__('Hai scelto di pagare con CARTALIS.').'</p>'
+                    . '<p>'.__('Hai scelto di pagare con PUNTOLIS.').'</p>'
                     . '<p>'.__('In allegato alla email di conferma ordine troverai il bollettino per effettuare il pagamento presso un qualsiasi punto LIS.').'</p>'
                     . '<p><a href="'.$barcodeHttp.'" target="_blank">'.__('Puoi scaricare il bollettino anche cliccando quì').'</a></p>';
             }
@@ -310,7 +310,7 @@ function init_wc_cartalis_payment_gateway() {
                 $barcodeHttp = '//'.$_SERVER['HTTP_HOST'].'/wp-content/uploads/barcode/'.$order_id.'.png';
 
                 echo '<h3>Pagamento</h3>'
-                    . '<p>'.__('Pagamento tramite CARTALIS. <br />Codice a barre per eseguire il pagamento').':</p>'
+                    . '<p>'.__('Pagamento tramite PUNTOLIS. <br />Codice a barre per eseguire il pagamento').':</p>'
                     . get_post_meta( $order_id, 'cartalisBarcode', true )
                     . '<p>'
                     . '<a href="'.$barcodeHttp.'" target="_blank"><img src="'.$barcodeHttp.'" width="300px"/></a>'
@@ -422,9 +422,9 @@ function init_wc_cartalis_payment_gateway() {
             $barcode = $this->uploadDir['basedir'].'/barcode/'.$order_id.'.png';
             $filename = $this->uploadDir['basedir'].'/deposit/'.$order_id.'.pdf';
 
-            $text_top = utf8_decode("Vai in una tabaccheria PUNTOLIS, edicola o bar convenzionati con CartaLIS IMEL S.p.A., puoi pagare in modo comodo e veloce semplicemente mostrando il codice a barre riportato sotto.");
+            $text_top = utf8_decode("Vai in una tabaccheria PUNTOLIS, edicola o bar convenzionati con LIS Pay S.p.A., puoi pagare in modo comodo e veloce semplicemente mostrando il codice a barre riportato sotto.");
             $text_top1 = utf8_decode("Il pagamento può essere effettuato con carte di credito e prepagate VISA e MASTERCARD, con carte PagoBancomat o contanti.");
-            $text_top2 = utf8_decode("Cerca il PUNTOLIS più vicino a te su www.cartalis.it");
+            $text_top2 = utf8_decode("Cerca il PUNTOLIS più vicino a te su www.puntolis.it");
 
             require( __DIR__ . '/ws_fpdf.php');
             $pdf = new ws_fpdf();
