@@ -1,12 +1,12 @@
 <?php
 /**
-* Plugin Name: CARTALIS Payment for Woocommerce
+* Plugin Name: PUNTOLIS Payment for Woocommerce
 * Plugin URI: https://blog.waltersanti.info
-* Description: CARTALIS Payment
+* Description: PUNTOLIS Payment
 * Author: WiTech
 * Author URI: https://waltersanti.info
-* Version: 1.2.3
-* WC tested up to: 4.8.0
+* Version: 1.2.4
+* WC tested up to: 7.2.2
 *
 * @package WC_Admin
 */
@@ -117,7 +117,7 @@ function init_wc_cartalis_payment_gateway() {
                 'cartalis_ftp_host' => array(
                     'title' => __('FTP Host'),
                     'type' => 'text',
-                    'description' => __('Nome dell\'host cartalis per il recupero dei pagamenti effettuati'),
+                    'description' => __('Nome dell\'host puntolis per il recupero dei pagamenti effettuati'),
                     'default' => 'ftp.miosito.com',
                     'desc_tip' => true,
                 ),
@@ -407,8 +407,8 @@ function init_wc_cartalis_payment_gateway() {
          *  Admin Panel Options
          */
         public function admin_options() {
-            echo '<h3>' . __('CARTALIS Gateway', 'woo-cartalis-payment-gateway') . '</h3>';
-            echo '<p>' . __('With CARTALIS the customer can pay the order in any point of Lottomatica.', 'woo-cartalis-payment-gateway') . '</p>';
+            echo '<h3>' . __('PUNTOLIS Gateway', 'woo-cartalis-payment-gateway') . '</h3>';
+            echo '<p>' . __('With PUNTOLIS the customer can pay the order in any point of Lottomatica.', 'woo-cartalis-payment-gateway') . '</p>';
             echo '<table class="form-table">';
             $this->generate_settings_html();
             echo '</table>';
