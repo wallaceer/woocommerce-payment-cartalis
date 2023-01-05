@@ -19,7 +19,7 @@ class ws_cartalis{
     /**
      * @var string
      */
-    public static $logfile = __DIR__ . '/../var/log/cartalis.log';
+    public static $logfile = '/var/log/cartalis.log';
 
     /**
      * @param $filename
