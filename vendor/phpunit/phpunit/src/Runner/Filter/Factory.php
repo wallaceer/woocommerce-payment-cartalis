@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /*
  * This file is part of PHPUnit.
  *
@@ -7,44 +7,97 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+namespace PHPUnit\Runner\Filter;
+
+use function assert;
+use FilterIterator;
+use Iterator;
+use PHPUnit\Framework\Test;
+use PHPUnit\Framework\TestSuite;
 
 /**
- * @since Class available since Release 4.0.0
+ * @no-named-arguments Parameter names are not covered by the backward compatibility promise for PHPUnit
+ *
+ * @internal This class is not covered by the backward compatibility promise for PHPUnit
  */
-class PHPUnit_Runner_Filter_Factory
+final class Factory
 {
     /**
-     * @var array
+     * @var list<array{className: class-string<FilterIterator<int, Test, Iterator<int, Test>>>, argument: list<non-empty-string>|non-empty-string}>
      */
-    private $filters = array();
+    private array $filters = [];
 
     /**
-     * @param ReflectionClass $filter
-     * @param mixed           $args
+     * @param list<non-empty-string> $testIds
      */
-    public function addFilter(ReflectionClass $filter, $args)
+    public function addTestIdFilter(array $testIds): void
     {
-        if (!$filter->isSubclassOf('RecursiveFilterIterator')) {
-            throw new InvalidArgumentException(
-                sprintf(
-                    'Class "%s" does not extend RecursiveFilterIterator',
-                    $filter->name
-                )
-            );
-        }
-
-        $this->filters[] = array($filter, $args);
+        $this->filters[] = [
+            'className' => TestIdFilterIterator::class,
+            'argument'  => $testIds,
+        ];
     }
 
     /**
-     * @return FilterIterator
+     * @param list<non-empty-string> $groups
      */
-    public function factory(Iterator $iterator, PHPUnit_Framework_TestSuite $suite)
+    public function addIncludeGroupFilter(array $groups): void
+    {
+        $this->filters[] = [
+            'className' => IncludeGroupFilterIterator::class,
+            'argument'  => $groups,
+        ];
+    }
+
+    /**
+     * @param list<non-empty-string> $groups
+     */
+    public function addExcludeGroupFilter(array $groups): void
+    {
+        $this->filters[] = [
+            'className' => ExcludeGroupFilterIterator::class,
+            'argument'  => $groups,
+        ];
+    }
+
+    /**
+     * @param non-empty-string $name
+     */
+    public function addIncludeNameFilter(string $name): void
+    {
+        $this->filters[] = [
+            'className' => IncludeNameFilterIterator::class,
+            'argument'  => $name,
+        ];
+    }
+
+    /**
+     * @param non-empty-string $name
+     */
+    public function addExcludeNameFilter(string $name): void
+    {
+        $this->filters[] = [
+            'className' => ExcludeNameFilterIterator::class,
+            'argument'  => $name,
+        ];
+    }
+
+    /**
+     * @param Iterator<int, Test> $iterator
+     *
+     * @return FilterIterator<int, Test, Iterator<int, Test>>
+     */
+    public function factory(Iterator $iterator, TestSuite $suite): FilterIterator
     {
         foreach ($this->filters as $filter) {
-            list($class, $args) = $filter;
-            $iterator           = $class->newInstance($iterator, $args, $suite);
+            $iterator = new $filter['className'](
+                $iterator,
+                $filter['argument'],
+                $suite,
+            );
         }
+
+        assert($iterator instanceof FilterIterator);
 
         return $iterator;
     }
